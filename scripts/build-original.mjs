@@ -43,6 +43,7 @@ for (const name of [
   'branding',
   'defaults',
   'site-settings',
+  'extension-bridge',
   'service-worker',
 ]) {
   const src = await fs.readFile(path.join(root, 'src/local', name + '.ts'), 'utf8');
@@ -97,6 +98,7 @@ for (const name of [
   'policies.ts',
   'branding.ts',
   'defaults.ts',
+  'extension-bridge.ts',
   'site-settings.ts',
 ])
   cacheVersion.update(await fs.readFile(path.join(root, 'src/local', name)));
@@ -114,6 +116,7 @@ const cacheFiles = [
   '/local/policies.js',
   '/local/branding.js',
   '/local/defaults.js',
+  '/local/extension-bridge.js',
   '/local/cloud-panel.js',
   '/local/site-settings.js',
   '/config/default-template.json',
@@ -136,6 +139,7 @@ const report = {
     'local/policies.js',
     'local/branding.js',
     'local/defaults.js',
+    'local/extension-bridge.js',
     'local/cloud-panel.js',
     'local/site-settings.js',
     'config/default-template.json',

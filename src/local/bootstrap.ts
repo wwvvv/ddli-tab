@@ -1,3 +1,4 @@
+import { installExtensionBridge } from './extension-bridge.js';
 import { installCloudPanel } from './cloud-panel.js';
 import { initializeDefaults } from './defaults.js';
 import { migrateBranding } from './branding.js';
@@ -63,6 +64,7 @@ async function start() {
   await initializeDefaults();
   await import(/* @vite-ignore */ entry);
   installLocalPolicies();
+  installExtensionBridge();
   installCloudPanel();
   const note = document.createElement('div');
   note.id = 'ddli-local-mode';

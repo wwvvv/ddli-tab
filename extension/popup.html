@@ -1,0 +1,11 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><title>添加到 DTab</title><link rel="stylesheet" href="popup.css"></head><body>
+<h1><img src="logo.png" alt="DTab">添加当前页面</h1>
+<label>DTab 网页地址<input id="site" type="url" placeholder="https://你的DTab域名"></label>
+<button id="connect">授权连接并读取分组</button>
+<label>网页地址<input id="url" type="url"></label>
+<label>网页标题<input id="title"></label>
+<label>图标地址<input id="icon" type="url"></label>
+<label>分组<select id="group"></select></label>
+<button id="add" disabled>添加到 DTab</button><p id="status" role="status"></p>
+<p class="hint">只在点击时读取当前页。请保持 DTab 页面打开；云同步由网页中的账号设置控制。</p>
+<script type="module" src="popup.js"></script></body></html>

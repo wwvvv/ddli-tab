@@ -1,0 +1,10 @@
+{
+ "manifest_version":3,
+ "name":"DTab 添加当前页面",
+ "version":"0.1.0",
+ "description":"将当前网页的地址、标题与图标添加到自己的 DTab 分组。",
+ "permissions":["activeTab","scripting","storage"],
+ "optional_host_permissions":["https://*/*","http://localhost/*","http://127.0.0.1/*"],
+ "action":{"default_popup":"popup.html","default_title":"添加到 DTab"},
+ "icons":{"128":"logo.png"}
+}
