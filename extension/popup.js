@@ -1,3 +1,4 @@
+import { parseSite } from './site.js';
 const el = (id) => document.getElementById(id);
 let targetTab;
 let connectionVersion = 0;
@@ -11,22 +12,6 @@ el('site').addEventListener('input', () => {
   resetConnection();
   el('status').textContent = '站点地址已更改，请重新连接 DTab。';
 });
-function siteURL() {
-  const url = new URL(el('site').value.trim());
-  if (
-    url.username ||
-    url.password ||
-    url.search ||
-    url.hash ||
-    url.pathname !== '/' ||
-    !(
-      url.protocol === 'https:' ||
-      (url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname))
-    )
-  )
-    throw Error('请填写 DTab 的 HTTPS 根地址；本地测试可用 localhost 或 127.0.0.1');
-  return url;
-}
 function bridge(request) {
   if (!Number.isInteger(targetTab)) throw Error('请先连接 DTab 并读取分组');
   return chrome.scripting
@@ -76,10 +61,15 @@ el('connect').onclick = () =>
   run(async () => {
     resetConnection();
     const version = connectionVersion;
-    const url = siteURL();
-    const pattern = `${url.protocol}//${url.hostname}/*`;
-    if (!(await chrome.permissions.request({ origins: [pattern] })))
-      throw Error('尚未授予 DTab 站点访问权限');
+    const url = parseSite(el('site').value);
+    const { pattern } = url;
+    if (!(await chrome.permissions.contains({ origins: [pattern] }))) {
+      if (version !== connectionVersion) return;
+      await chrome.tabs.create({
+        url: chrome.runtime.getURL('connect.html') + '?site=' + encodeURIComponent(url.origin),
+      });
+      return;
+    }
     if (version !== connectionVersion) return;
     await chrome.storage.local.set({ dtabSite: url.origin });
     const tabs = await chrome.tabs.query({ url: pattern });

@@ -83,6 +83,17 @@ test('真实 MV3 插件加载并通过 action 获取当前网页', async () => {
     expect(await evaluate(`document.querySelector('#status').textContent`)).toBe(
       '站点地址已更改，请重新连接 DTab。',
     );
+    const setupPromise = context.waitForEvent('page');
+    await evaluate(`document.querySelector('#connect').click()`);
+    const setup = await setupPromise;
+    await expect(setup).toHaveURL(
+      `chrome-extension://${id}/connect.html?site=https%3A%2F%2Fexample.com`,
+    );
+    await expect(setup.locator('#site')).toHaveValue('https://example.com');
+    await setup.locator('#site').fill('http://example.com');
+    await setup.locator('#grant').click();
+    await expect(setup.locator('#status')).toContainText('HTTPS 根地址');
+    await expect(setup.locator('#grant')).toBeEnabled();
   } finally {
     await context.close();
   }
