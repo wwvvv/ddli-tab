@@ -1,10 +1,13 @@
+import { sendToPage } from './bridge.js';
 import { parseSite } from './site.js';
 const el = (id) => document.getElementById(id);
 let targetTab;
+let targetOrigin;
 let connectionVersion = 0;
 function resetConnection() {
   connectionVersion++;
   targetTab = undefined;
+  targetOrigin = undefined;
   el('group').replaceChildren();
   el('add').disabled = true;
 }
@@ -18,30 +21,8 @@ function bridge(request) {
     .executeScript({
       target: { tabId: targetTab },
       world: 'MAIN',
-      func: async (message) =>
-        new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            window.removeEventListener('dtab:extension-response', listener);
-            reject(Error('DTab 页面尚未就绪，请刷新该页面后重试'));
-          }, 5000);
-          function listener(event) {
-            let response;
-            try {
-              response = JSON.parse(event.detail);
-            } catch {
-              return;
-            }
-            if (response.id !== message.id) return;
-            clearTimeout(timeout);
-            window.removeEventListener('dtab:extension-response', listener);
-            resolve(response);
-          }
-          window.addEventListener('dtab:extension-response', listener);
-          window.dispatchEvent(
-            new CustomEvent('dtab:extension-request', { detail: JSON.stringify(message) }),
-          );
-        }),
-      args: [{ ...request, id: crypto.randomUUID() }],
+      func: sendToPage,
+      args: [{ message: { ...request, id: crypto.randomUUID() }, expectedOrigin: targetOrigin }],
     })
     .then((results) => {
       const result = results[0]?.result;
@@ -80,6 +61,7 @@ el('connect').onclick = () =>
       throw Error('已打开 DTab 页面，待加载完成后再点击读取分组');
     }
     targetTab = existing.id;
+    targetOrigin = url.origin;
     const result = await bridge({ command: 'groups' });
     if (version !== connectionVersion) return;
     el('group').replaceChildren(

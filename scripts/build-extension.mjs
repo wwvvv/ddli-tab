@@ -9,6 +9,7 @@ for (const file of [
   'popup.css',
   'popup.js',
   'site.js',
+  'bridge.js',
   'connect.html',
   'connect.js',
 ])
