@@ -19,6 +19,26 @@ async function start() {
     // Updates are best-effort; an offline restart must still use the installed worker.
     void registration.update().catch(() => {});
   }
+  const showUpdate = () => {
+    if (
+      !registration?.waiting ||
+      !navigator.serviceWorker.controller ||
+      document.getElementById('dtab-update-notice')
+    )
+      return;
+    const notice = document.createElement('div');
+    notice.id = 'dtab-update-notice';
+    notice.setAttribute('role', 'status');
+    notice.textContent =
+      'DTab 新版本已准备好。请完成当前编辑，关闭所有 DTab 标签页后重新打开，收藏不会被清空。';
+    notice.style.cssText =
+      'position:fixed;bottom:60px;left:50%;transform:translateX(-50%);max-width:90vw;padding:12px 16px;border-radius:10px;background:#183654;color:white;z-index:10000;font-size:13px';
+    document.body.append(notice);
+  };
+  registration.addEventListener('updatefound', () => {
+    registration?.installing?.addEventListener('statechange', showUpdate);
+  });
+  showUpdate();
   const correct = () => navigator.serviceWorker.controller?.scriptURL.endsWith('/ddli-local-sw.js');
   if (!correct()) {
     await new Promise<void>((resolve, reject) => {
@@ -47,7 +67,7 @@ async function start() {
   const note = document.createElement('div');
   note.id = 'ddli-local-mode';
   note.textContent = 'DTab · 本地版';
-  note.title = '沿用原 GoTab 页面与本地存储；账号、云同步和上传尚未接入。';
+  note.title = 'DTab 本地存储；账号与同步可在右上角面板配置，图片上传未启用。';
   Object.assign(note.style, {
     position: 'fixed',
     bottom: '32px',

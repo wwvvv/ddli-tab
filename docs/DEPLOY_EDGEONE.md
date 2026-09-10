@@ -46,3 +46,5 @@
 官方配置参考：https://pages.edgeone.ai/document/edgeone-json
 
 当前文档是部署步骤，不是已成功部署的证明。仍需要正式域名、真实 Supabase 和双设备验收结果。
+
+更新行为已增加本地浏览器验收：新 Service Worker 等待旧标签页全部关闭后激活，旧页面继续使用同一版本的 HTML 和资源。更新就绪时显示提示，关闭全部 DTab 标签页再打开完成切换。该测试覆盖模拟部署切换，不替代正式 EdgeOne 响应头和 CDN 验证。

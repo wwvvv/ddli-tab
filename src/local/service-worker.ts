@@ -4,12 +4,8 @@ import { CORE_FILES, CACHE_VERSION } from './cache-manifest.js';
 declare const self: ServiceWorkerGlobalScope;
 const CACHE = 'ddli-original-shell-' + CACHE_VERSION;
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(CORE_FILES))
-      .then(() => self.skipWaiting()),
-  );
+  // First install activates normally; updates wait until all old tabs close.
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(CORE_FILES)));
 });
 self.addEventListener('activate', (event) =>
   event.waitUntil(
@@ -57,9 +53,12 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin || request.method !== 'GET') return;
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(
-        async () => (await caches.open(CACHE)).match('/index.html') as Promise<Response>,
-      ),
+      caches.open(CACHE).then(async (cache) => {
+        // Keep the HTML entry and its modules on the same installed version.
+        return (
+          (await cache.match(url.pathname)) || (await cache.match('/index.html')) || fetch(request)
+        );
+      }),
     );
     return;
   }
