@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=22.11.0"
   },
   "scripts": {
     "build": "tsc --noEmit && node scripts/build-original.mjs",
@@ -14,10 +14,12 @@
     "test": "vitest run --config vitest.config.ts",
     "test:e2e": "playwright test",
     "format:check": "prettier --check \"src/local/**/*.ts\" \"scripts/*.mjs\"",
-    "test:db": "node scripts/test-database.mjs"
+    "test:db": "node scripts/test-database.mjs",
+    "build:edge": "node scripts/build-original.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
+    "esbuild": "0.28.2",
     "lucide-react": "1.43.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -28,7 +30,6 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@vitejs/plugin-react": "6.1.1",
-    "esbuild": "0.28.2",
     "prettier": "3.9.6",
     "typescript": "7.0.2",
     "vite": "8.2.2",

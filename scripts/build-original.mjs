@@ -1,10 +1,9 @@
-import { build } from 'esbuild';
+import { build, transformSync } from 'esbuild';
 import { loadEnvFile } from 'node:process';
 import { applyBranding } from './brand-original.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { stripTypeScriptTypes } from 'node:module';
 const root = path.resolve(import.meta.dirname, '..');
 try {
   loadEnvFile(path.join(root, '.env.local'));
@@ -47,11 +46,11 @@ for (const name of [
   'service-worker',
 ]) {
   const src = await fs.readFile(path.join(root, 'src/local', name + '.ts'), 'utf8');
-  let compiled = stripTypeScriptTypes(src, { mode: 'strip' });
+  let compiled = transformSync(src, { loader: 'ts', target: 'es2022', format: 'esm' }).code;
   if (name === 'service-worker')
     compiled = compiled
-      .replace("'./api.js'", "'./local/api.js'")
-      .replace("'./cache-manifest.js'", "'./local/cache-manifest.js'");
+      .replaceAll('./api.js', './local/api.js')
+      .replaceAll('./cache-manifest.js', './local/cache-manifest.js');
   await fs.writeFile(
     path.join(out, name === 'service-worker' ? 'ddli-local-sw.js' : `local/${name}.js`),
     compiled,
@@ -85,7 +84,7 @@ for (const htmlName of ['index.html', 'newtab.html', 'popup.html']) {
 const settings = await fs.readFile(path.join(out, 'local/site-settings.js'), 'utf8');
 await fs.writeFile(
   path.join(out, 'siteConfig.js'),
-  settings.replace('export const SITE_CONFIG', 'globalThis.siteConfig'),
+  settings.replace(/export\s*\{[\s\S]*?\};?\s*$/, '') + '\nglobalThis.siteConfig = SITE_CONFIG;\n',
 );
 await fs.copyFile(path.join(root, 'legacy/gotab/LICENSE'), path.join(out, 'LICENSE'));
 await fs.cp(path.join(root, 'config'), path.join(out, 'config'), { recursive: true });
@@ -102,6 +101,7 @@ for (const name of [
 ])
   cacheVersion.update(await fs.readFile(path.join(root, 'src/local', name)));
 cacheVersion.update(JSON.stringify(hashes));
+cacheVersion.update(await fs.readFile(path.join(root, 'scripts/build-original.mjs')));
 cacheVersion.update(await fs.readFile(path.join(out, 'local/cloud-panel.js')));
 cacheVersion.update(await fs.readFile(path.join(root, 'config/default-template.json')));
 cacheVersion.update(await fs.readFile(path.join(root, 'scripts/brand-original.mjs')));
