@@ -1,5 +1,16 @@
 const el = (id) => document.getElementById(id);
 let targetTab;
+let connectionVersion = 0;
+function resetConnection() {
+  connectionVersion++;
+  targetTab = undefined;
+  el('group').replaceChildren();
+  el('add').disabled = true;
+}
+el('site').addEventListener('input', () => {
+  resetConnection();
+  el('status').textContent = '站点地址已更改，请重新连接 DTab。';
+});
 function siteURL() {
   const url = new URL(el('site').value.trim());
   if (
@@ -17,6 +28,7 @@ function siteURL() {
   return url;
 }
 function bridge(request) {
+  if (!Number.isInteger(targetTab)) throw Error('请先连接 DTab 并读取分组');
   return chrome.scripting
     .executeScript({
       target: { tabId: targetTab },
@@ -62,12 +74,16 @@ async function run(action) {
 }
 el('connect').onclick = () =>
   run(async () => {
+    resetConnection();
+    const version = connectionVersion;
     const url = siteURL();
     const pattern = `${url.protocol}//${url.hostname}/*`;
     if (!(await chrome.permissions.request({ origins: [pattern] })))
       throw Error('尚未授予 DTab 站点访问权限');
+    if (version !== connectionVersion) return;
     await chrome.storage.local.set({ dtabSite: url.origin });
     const tabs = await chrome.tabs.query({ url: pattern });
+    if (version !== connectionVersion) return;
     const existing = tabs.find((tab) => tab.url && new URL(tab.url).origin === url.origin);
     if (!existing) {
       await chrome.tabs.create({ url: url.origin, active: false });
@@ -75,6 +91,7 @@ el('connect').onclick = () =>
     }
     targetTab = existing.id;
     const result = await bridge({ command: 'groups' });
+    if (version !== connectionVersion) return;
     el('group').replaceChildren(
       ...result.groups.map((g) => {
         const option = document.createElement('option');
@@ -99,7 +116,7 @@ el('add').onclick = () =>
         ? '该分组中已存在此网址。'
         : '已添加到 DTab；已启用的网页同步会自动处理。';
     } finally {
-      el('add').disabled = false;
+      el('add').disabled = !Number.isInteger(targetTab);
     }
   });
 void run(async () => {

@@ -74,6 +74,15 @@ test('真实 MV3 插件加载并通过 action 获取当前网页', async () => {
     expect(await evaluate(`document.querySelector('#url').value`)).toBe(page.url());
     expect(await evaluate(`document.querySelector('#title').value`)).toBe(await page.title());
     expect(await evaluate(`document.querySelector('#icon').value`)).toMatch(/^https?:\/\//);
+    // Seed stale UI only; this checks invalidation, not a successful host grant.
+    await evaluate(
+      `document.querySelector('#group').innerHTML = '<option value="old">old</option>'; document.querySelector('#add').disabled = false; document.querySelector('#site').value = 'https://example.com'; document.querySelector('#site').dispatchEvent(new Event('input'));`,
+    );
+    expect(await evaluate(`document.querySelector('#add').disabled`)).toBe(true);
+    expect(await evaluate(`document.querySelector('#group').options.length`)).toBe(0);
+    expect(await evaluate(`document.querySelector('#status').textContent`)).toBe(
+      '站点地址已更改，请重新连接 DTab。',
+    );
   } finally {
     await context.close();
   }

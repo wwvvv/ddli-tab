@@ -28,3 +28,6 @@ npx playwright test tests/extension-runtime.spec.ts
 测试专用 --enable-unsafe-extension-debugging 仅用于临时测试实例，不是用户安装要求。弹窗是 other 类型调试目标，需要恢复调试器暂停后检查其 DOM。
 此项已在本机通过；跨站点可选权限确认、连接分组和完整添加流程仍需扩展级联调，不能用网页桥测试代替。扩展商店发布尚未完成。
 CDP 接口参考：https://chromedevtools.github.io/devtools-protocol/tot/Extensions/
+
+连接状态修复：修改站点地址或重新连接时清空旧分组并禁用添加；迟到的旧连接响应不再恢复旧目标。真实扩展弹窗已覆盖地址编辑后的状态失效检查（测试预置旧 UI 状态，不等同于已完成授权）。
+权限联调发现：自动化触发 chrome.permissions.request 后弹窗调试目标关闭，尚未验证原生权限确认后重新打开的完整用户流程，保持该验收项未完成。
