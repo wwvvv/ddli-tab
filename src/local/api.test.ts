@@ -47,7 +47,7 @@ describe('原版 API 的本地适配', () => {
   it('旧登录入口引导到新账号面板，不误报 Supabase 未接入', async () => {
     const body = await (await handleLocalApi(req('/api/login'))).json();
     expect(body.code).toBe(501);
-    expect(body.msg).toContain('账号与同步');
+    expect(body.msg).toContain('迁移备份');
     expect(body.msg).not.toContain('尚未接入');
   });
   it('本地资源库是空集合而非假造远端数据', async () => {

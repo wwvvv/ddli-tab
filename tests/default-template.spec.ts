@@ -8,8 +8,10 @@ test('主动恢复默认前确认并可下载原收藏备份', async ({ page }) 
   await page.getByRole('textbox', { name: /图标地址/ }).fill('/icons/logo.svg');
   await page.getByRole('button', { name: '添加卡片', exact: true }).click();
   await expect(page.getByRole('dialog', { name: '添加卡片', exact: true })).toBeHidden();
-  await page.getByRole('button', { name: '账号与同步', exact: true }).click();
-  const panel = page.getByRole('dialog', { name: 'DTab 账号与同步' });
+  await page.getByRole('button', { name: 'setting', exact: true }).click();
+  await page.getByText('迁移备份', { exact: true }).click();
+  const panel = page.locator('#dtab-supabase-sync');
+  await expect(panel).toBeVisible();
   page.once('dialog', (d) => d.dismiss());
   await panel.getByRole('button', { name: '恢复站点默认模板', exact: true }).click();
   expect(

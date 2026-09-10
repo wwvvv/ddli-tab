@@ -69,7 +69,7 @@ async function start() {
   const note = document.createElement('div');
   note.id = 'ddli-local-mode';
   note.textContent = 'DTab · 本地版';
-  note.title = 'DTab 本地存储；账号与同步可在右上角面板配置，图片上传未启用。';
+  note.title = 'DTab 本地存储；账号与云端同步在侧边栏「迁移备份」中配置，图片上传未启用。';
   Object.assign(note.style, {
     position: 'fixed',
     bottom: '32px',

@@ -22,7 +22,7 @@ test('扩展发送前拒绝已跳转到其他 origin 的目标，且不泄露事
 
 test('扩展实际发送函数在正确 origin 读取分组并添加收藏', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('button', { name: '账号与同步', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: '搜一搜，看一看', exact: true })).toBeVisible();
   const expectedOrigin = new URL(page.url()).origin;
   const groups: any = await page.evaluate(sendToPage, {
     expectedOrigin,

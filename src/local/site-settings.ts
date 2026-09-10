@@ -2,7 +2,7 @@ export const SITE_CONFIG = {
   bottomLinks: '[{"label":"DTab · 本地数据保存在当前浏览器","link":"/"}]',
   title: 'DTab · 本地版',
   server_url: '',
-  about_us: 'DTab 本地版：界面与数据结构沿用原版，Supabase 和插件尚未接入。',
+  about_us: 'DTab：界面与数据结构沿用原版；账号与云端同步在侧边栏「迁移备份」中配置。',
   donate: '',
   cardPush: 'close',
   offlineToUse: 'open',

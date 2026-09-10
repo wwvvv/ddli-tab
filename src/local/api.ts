@@ -61,7 +61,7 @@ export async function handleLocalApi(request: Request): Promise<Response> {
   )
     return envelope(
       null,
-      '此入口属于已停用的原版服务。登录与云同步请使用右上角「账号与同步」；原版管理后台未迁移。',
+      '此入口属于已停用的原版服务。登录与云同步请在侧边栏「迁移备份」中配置；原版管理后台未迁移。',
       501,
     );
   return envelope(null, '此联网功能尚未迁移，本地收藏和设置不受影响。', 501);

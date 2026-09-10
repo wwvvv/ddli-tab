@@ -11,7 +11,7 @@ test('真实 MV3 插件加载并通过 action 获取当前网页', async () => {
   try {
     const page = await context.newPage();
     await page.goto('http://127.0.0.1:4180/');
-    await expect(page.getByRole('button', { name: '账号与同步', exact: true })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: '搜一搜，看一看', exact: true })).toBeVisible();
     const browserCdp = await context.browser()!.newBrowserCDPSession();
     const { id } = await browserCdp.send('Extensions.loadUnpacked', {
       path: path.resolve('dist-extension'),

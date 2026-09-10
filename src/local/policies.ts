@@ -8,13 +8,9 @@ export function installLocalPolicies() {
       const target = event.target as Element | null;
       const button = target?.closest('button');
       if (!button?.querySelector('[aria-label="user"]')) return;
-      const panel = document.querySelector<HTMLDialogElement>(
-        'dialog[aria-label="DTab 账号与同步"]',
-      );
-      if (!panel) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      panel.showModal();
+      window.dispatchEvent(new Event('dtab:open-sync-settings'));
     },
     true,
   );

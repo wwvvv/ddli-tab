@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 test('插件桥读取分组、添加页面并去重，数据刷新后仍在', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: '账号与同步', exact: true }).waitFor();
+  await page.getByRole('textbox', { name: '搜一搜，看一看', exact: true }).waitFor();
   const send = (command: string, extra: any = {}) =>
     page.evaluate(
       ({ command, extra }) =>

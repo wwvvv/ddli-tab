@@ -50,7 +50,7 @@ test('部署更新等待旧页面关闭，期间页面资源版本一致且保�
   try {
     const page = await context.newPage();
     await page.goto(origin);
-    await page.getByRole('button', { name: '账号与同步', exact: true }).waitFor();
+    await page.getByRole('textbox', { name: '搜一搜，看一看', exact: true }).waitFor();
     await page.evaluate(() => localStorage.setItem('dtab-update-test', 'preserved'));
     version = 'two';
     await page.evaluate(async () => {
@@ -69,7 +69,7 @@ test('部署更新等待旧页面关闭，期间页面资源版本一致且保�
     await expect.poll(() => worker.evaluate(() => self.registration.waiting === null)).toBe(true);
     const fresh = await context.newPage();
     await fresh.goto(origin);
-    await fresh.getByRole('button', { name: '账号与同步', exact: true }).waitFor();
+    await fresh.getByRole('textbox', { name: '搜一搜，看一看', exact: true }).waitFor();
     await expect(fresh.locator('html')).toHaveAttribute('data-test-version', 'two');
     expect(await fresh.evaluate(() => localStorage.getItem('dtab-update-test'))).toBe('preserved');
     await fresh.close();
