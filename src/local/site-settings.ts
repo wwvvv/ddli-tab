@@ -1,0 +1,17 @@
+export const SITE_CONFIG = {
+  bottomLinks: '[{"label":"DTab · 本地数据保存在当前浏览器","link":"/"}]',
+  title: 'DTab · 本地版',
+  server_url: '',
+  about_us: 'DTab 本地版：界面与数据结构沿用原版，Supabase 和插件尚未接入。',
+  donate: '',
+  cardPush: 'close',
+  offlineToUse: 'open',
+  sourceStoreFrom: 'self',
+  homePageLimit: 'close',
+  userRegister: 'close',
+  loginBackground: '',
+  loginBackgroundBlur: '',
+  loginBackgroundBrightness: '',
+  uploadWallpaper: 'close',
+  uploadWallpaperMaxSize: '0',
+};
