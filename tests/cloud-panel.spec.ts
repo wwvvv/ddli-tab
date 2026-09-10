@@ -114,7 +114,6 @@ test('配置模式通过 Supabase SDK 发起登录并可退出（模拟服务）
   await panel.getByRole('button', { name: '显示', exact: true }).click();
   await expect(panel.getByLabel('密码', { exact: true })).toHaveAttribute('type', 'text');
   await panel.getByRole('button', { name: '隐藏', exact: true }).click();
-  await page.getByRole('button', { name: '账号与同步', exact: true }).click();
   await panel.getByRole('textbox', { name: '邮箱', exact: true }).fill('fixture@example.com');
   await panel.getByRole('button', { name: '忘记密码', exact: true }).click();
   await expect(panel.getByRole('status')).toContainText('重置链接');
