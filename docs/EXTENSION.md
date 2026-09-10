@@ -13,3 +13,18 @@
 首次连接时若没有打开 DTab，会在后台新开一个标签页；待加载完成后再次读取分组。仅支持普通 HTTP/HTTPS 页面；浏览器内部页面不作为收藏来源。同一分组的相同 URL 会提示已存在。
 
 网页桥的输入验证、添加、去重及刷新保存已通过浏览器测试。实际 Chrome/Edge 扩展安装、权限弹窗与完整交互测试尚待完成；未提交扩展商店。该实现不替代正式 Supabase 双设备验收。
+
+## 自动化安装与采集验证
+新增 tests/extension-runtime.spec.ts：在独立临时 Chromium 配置中实际加载 dist-extension，通过 CDP 触发扩展 action，检查真实弹窗读取当前页面 URL、标题和图标地址。没有替换 chrome.tabs 或模拟扩展 API；测试结束关闭独立配置，不操作日常浏览器。
+
+运行：
+```sh
+npm run build
+npm run build:extension
+npx playwright install chromium
+npx playwright test tests/extension-runtime.spec.ts
+```
+
+测试专用 --enable-unsafe-extension-debugging 仅用于临时测试实例，不是用户安装要求。弹窗是 other 类型调试目标，需要恢复调试器暂停后检查其 DOM。
+此项已在本机通过；跨站点可选权限确认、连接分组和完整添加流程仍需扩展级联调，不能用网页桥测试代替。扩展商店发布尚未完成。
+CDP 接口参考：https://chromedevtools.github.io/devtools-protocol/tot/Extensions/
