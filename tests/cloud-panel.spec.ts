@@ -1,15 +1,35 @@
-import { test, expect } from '@playwright/test';
+import { build } from 'esbuild';
+import { test, expect, type Page } from '@playwright/test';
+async function installPanel(page: Page, cloud: { url: string; publishableKey: string }) {
+  const output = await build({
+    entryPoints: ['src/local/cloud-panel.ts'],
+    bundle: true,
+    write: false,
+    format: 'esm',
+    platform: 'browser',
+    target: 'es2022',
+    define: { __DTAB_CLOUD__: JSON.stringify(cloud) },
+  });
+  await page.evaluate(async (source) => {
+    document.getElementById('dtab-cloud-button')?.remove();
+    document.querySelector('dialog[aria-label="DTab 账号与同步"]')?.remove();
+    const url = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
+    const module = await import(url);
+    module.installCloudPanel();
+    URL.revokeObjectURL(url);
+  }, output.outputFiles[0].text);
+}
 test('未配置 Supabase 时明确显示提示，不开放无效登录', async ({ page }) => {
   await page.goto('/');
+  await installPanel(page, { url: '', publishableKey: '' });
   await page.getByRole('button', { name: '账号与同步', exact: true }).click();
   const panel = page.getByRole('dialog', { name: 'DTab 账号与同步' });
   await expect(panel).toBeVisible();
   await expect(panel.getByRole('status')).toContainText('尚未配置 Supabase');
-  await expect(panel.getByRole('button', { name: '登录', exact: true })).toHaveCount(0);
-  await panel.getByRole('button', { name: '关闭', exact: true }).click();
+  await expect(panel.getByRole('button', { name: '登录并继续', exact: true })).toHaveCount(0);
+  await panel.getByRole('button', { name: '完成', exact: true }).click();
   await expect(panel).toBeHidden();
 });
-import { build } from 'esbuild';
 test('配置模式通过 Supabase SDK 发起登录并可退出（模拟服务）', async ({ page }) => {
   const output = await build({
     entryPoints: ['src/local/cloud-panel.ts'],
@@ -86,19 +106,30 @@ test('配置模式通过 Supabase SDK 发起登录并可退出（模拟服务）
   }, output.outputFiles[0].text);
   await page.getByRole('button', { name: '账号与同步', exact: true }).click();
   const panel = page.getByRole('dialog', { name: 'DTab 账号与同步' });
+  await expect(panel.locator('.dtab-auth-card')).toBeVisible();
+  await expect(panel.getByRole('button', { name: '登录并继续', exact: true })).toHaveClass(
+    /dtab-primary/,
+  );
+  await panel.getByLabel('密码', { exact: true }).fill('hidden-value');
+  await panel.getByRole('button', { name: '显示', exact: true }).click();
+  await expect(panel.getByLabel('密码', { exact: true })).toHaveAttribute('type', 'text');
+  await panel.getByRole('button', { name: '隐藏', exact: true }).click();
+  await page.getByRole('button', { name: '账号与同步', exact: true }).click();
   await panel.getByRole('textbox', { name: '邮箱', exact: true }).fill('fixture@example.com');
   await panel.getByRole('button', { name: '忘记密码', exact: true }).click();
   await expect(panel.getByRole('status')).toContainText('重置链接');
   expect(resetRequested).toBe(true);
-  await panel.getByLabel('密码', { exact: true }).fill('fixture-password-only');
-  await panel.getByRole('button', { name: '登录', exact: true }).click();
+  await panel.getByLabel('密码', { exact: true }).fill('demo123');
+  await panel.getByRole('button', { name: '创建账号', exact: true }).click();
+  await expect(panel).toContainText('注册密码至少需要 8 位');
+  await panel.getByRole('button', { name: '登录并继续', exact: true }).click();
   await expect(panel.getByRole('status')).toContainText('已登录');
   expect(signedIn).toBe(true);
   page.on('dialog', (dialog) => dialog.accept());
   await panel.getByRole('button', { name: '以本地数据启用同步', exact: true }).click();
   await expect(panel.getByText(/已同步 · 云端版本/)).toBeVisible();
   expect(remote.payload.appData.listData[0].children).toHaveLength(4);
-  await panel.getByRole('button', { name: '关闭', exact: true }).click();
+  await panel.getByRole('button', { name: '完成', exact: true }).click();
   await page.locator('#card-show-component-add-card-0').click();
   await page.getByRole('textbox', { name: /卡片链接/ }).fill('https://example.com');
   await page.getByRole('textbox', { name: /卡片名称/ }).fill('自动同步收藏');
@@ -132,10 +163,11 @@ test('配置模式通过 Supabase SDK 发起登录并可退出（模拟服务）
   const beforeLogout = pushes;
   await panel.getByRole('button', { name: '退出登录', exact: true }).click();
   expect(pushes).toBe(beforeLogout);
-  await expect(panel.getByRole('button', { name: '登录', exact: true })).toBeVisible();
+  await expect(panel.getByRole('button', { name: '登录并继续', exact: true })).toBeVisible();
 });
 test('原版头像入口打开 DTab 面板而不是原后端登录', async ({ page }) => {
   await page.goto('/');
+  await installPanel(page, { url: '', publishableKey: '' });
   await page.getByRole('button', { name: '账号与同步', exact: true }).waitFor();
   await page
     .getByRole('button', { name: 'user', exact: true })

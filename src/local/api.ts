@@ -59,6 +59,10 @@ export async function handleLocalApi(request: Request): Promise<Response> {
     p.startsWith('/api/user/') ||
     p.startsWith('/api/console/')
   )
-    return envelope(null, '当前为本地版，账号、云同步和管理接口尚未接入。', 501);
+    return envelope(
+      null,
+      '此入口属于已停用的原版服务。登录与云同步请使用右上角「账号与同步」；原版管理后台未迁移。',
+      501,
+    );
   return envelope(null, '此联网功能尚未迁移，本地收藏和设置不受影响。', 501);
 }

@@ -1,7 +1,7 @@
 import { validateTemplate, TEMPLATE_MARKER } from './defaults.js';
 export function installTemplateControls(host: HTMLElement) {
   const section = document.createElement('section');
-  section.style.cssText = 'border-top:1px solid #ddd;margin-top:16px;padding-top:12px';
+  section.className = 'dtab-template-card';
   const title = document.createElement('h3');
   title.textContent = '站点默认模板';
   const info = document.createElement('p');
