@@ -1,3 +1,4 @@
+import { installPasswordRecovery } from './password-recovery.js';
 import { installTemplateControls } from './template-controls.js';
 import { installSyncControls } from './sync-controls.js';
 import { createCloudClient, type CloudConfig } from './cloud-client.js';
@@ -66,14 +67,57 @@ export function installCloudPanel() {
   logout.type = 'button';
   const hint = document.createElement('p');
   hint.textContent = '首次启用同步前请确认数据来源。离线修改将在恢复连接后重试。';
-  form.append(email, password, login, register);
+  const forgot = document.createElement('button');
+  forgot.type = 'button';
+  forgot.textContent = '忘记密码';
+  forgot.onclick = async () => {
+    if (!email.reportValidity()) return;
+    forgot.disabled = true;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.value.trim(), {
+        redirectTo: location.origin + '/',
+      });
+      if (error) throw error;
+      status.textContent =
+        '如果该邮箱可以接收重置邮件，你将收到密码重置链接，请在发起请求的浏览器中打开。';
+    } catch (error) {
+      status.textContent = '重置请求未完成：' + (error as Error).message;
+    } finally {
+      forgot.disabled = false;
+    }
+  };
+  form.append(email, password, login, register, forgot);
   content.append(form, logout, hint);
   const syncHost = document.createElement('section');
   syncHost.hidden = true;
   content.append(syncHost);
   const sync = installSyncControls(supabase, syncHost);
+  const changePassword = document.createElement('button');
+  changePassword.textContent = '修改密码';
+  changePassword.type = 'button';
+  content.append(changePassword);
+  let syncSuspended = false;
+  const recovery = installPasswordRecovery(
+    supabase,
+    content,
+    () => {
+      syncSuspended = true;
+      sync.setOwner(null);
+      form.hidden = true;
+      syncHost.hidden = true;
+      changePassword.hidden = true;
+      if (!dialog.open) dialog.showModal();
+    },
+    () => {
+      status.textContent = '密码已修改。同步保持暂停，请重新登录后启用。';
+      changePassword.hidden = false;
+    },
+  );
+  changePassword.onclick = () => recovery.enter();
   const update = (user: { id: string; email?: string } | null) => {
-    sync.setOwner(user?.id ?? null);
+    if (recovery.active) return;
+    changePassword.hidden = !user;
+    sync.setOwner(syncSuspended ? null : (user?.id ?? null));
     form.hidden = !!user;
     logout.hidden = !user;
     status.textContent = user
@@ -107,6 +151,7 @@ export function installCloudPanel() {
   };
   register.onclick = () => void submit(true);
   logout.onclick = async () => {
+    recovery.exit();
     sync.setOwner(null);
     logout.disabled = true;
     const { error } = await supabase.auth.signOut({ scope: 'local' });
@@ -114,7 +159,17 @@ export function installCloudPanel() {
     if (error) status.textContent = error.message;
     else update(null);
   };
-  supabase.auth.onAuthStateChange((_event, session) => update(session?.user ?? null));
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      recovery.enter();
+      return;
+    }
+    if (event === 'SIGNED_OUT') {
+      recovery.exit();
+      syncSuspended = false;
+    }
+    update(session?.user ?? null);
+  });
   void supabase.auth.getSession().then(({ data, error }) => {
     if (error) status.textContent = error.message;
     else update(data.session?.user ?? null);
