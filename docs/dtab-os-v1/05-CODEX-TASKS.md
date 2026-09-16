@@ -170,3 +170,27 @@ iOS/iPadOS 风格、单一 DTab 主域名、GitHub + EdgeOne + Supabase + 现有
 
 分阶段提交代码，报告变更文件、实际测试结果、风险、未验证项与回滚方法。禁止打印或提交任何密钥，禁止未经授权改生产 DNS、付费资源、公开可见性或删除数据。
 ```
+
+## 12. 设计系统、Skill 与模型补充（2026-09-16）
+
+实施 UI 前读取 [06-DESIGN-SYSTEM.md](06-DESIGN-SYSTEM.md)，并使用 [dtab-ios-design](../../.agents/skills/dtab-ios-design/SKILL.md)；任务分配依照 [07-MODEL-ROUTING.md](07-MODEL-ROUTING.md)。这些补充不改变前面的阶段顺序和安全/迁移 gates。
+
+| 阶段 | 新增检查/交付 |
+| --- | --- |
+| M0 | 检查本地模型 ID/effort 和 `/skills` 发现结果，实际执行后记录 implementation/M0-MODELS.md。未检查标 not-run，不声称自动路由已生效 |
+| M1 | CORE 建立共享 token、基础控件和 Home/Dock/添加的最小浏览器样例；多尺寸/明暗验证后再扩展页面 |
+| M2 | 按 Skill 实现/审查 Home、Folder、Widget、图标与添加；布局核心仍由 CORE 单一负责 |
+| M3 | 设置与预设编辑保持统一 UI，不能为视觉简洁删除同步冲突、备份或权限说明 |
+| M4 | UI 可并行实现商店/相册展示；CORE 保留媒体授权、权益和共享 token 所有权；阶段结束做跨页面一致性审查 |
+| M5 | 按 Skill visual-review 清单提交真实截图和交互证据；REVIEW 在正式切换前核对视觉结果与原 A/G gates |
+
+推荐 CORE=Sol High，UI=Sol Medium，REVIEW=Astra 的可用高推理档位；实际名称/可用性与降级规则以 07 文档为准。AGENTS.md 只提供规则，不自行切换模型、不启动不存在的子 agent。
+
+在第 11 节启动指令后可补充：
+
+```text
+UI 任务使用 $dtab-ios-design，并读取 06-DESIGN-SYSTEM 和 07-MODEL-ROUTING。
+先按当前阶段执行；没有已确认设计稿时按规范制作最小浏览器样例并标待确认。
+不要安装外部 iOS/Liquid Glass UI 库，不复制 Apple 字体/图标，不每个页面重新发明 token。
+模型与 Skill 在本机实际检查后再记录成功，不能仅因文档存在就认定已启用。
+```

@@ -51,3 +51,23 @@ No production DNS changes, destructive database operations, new paid infrastruct
 Use actual results: passed / failed / blocked / not-run. Historical test counts and mock tests are not new execution or production verification. Do not delete failing tests or fabricate cloud success.
 
 Each stage must include the relevant type/build/unit/E2E/database checks, migration effects, remaining gates and a rollback path. Put execution reports under `docs/dtab-os-v1/implementation/` when they are actually produced; do not prefill them with successful results.
+
+## Design system and repository skill
+
+For visual or interactive OS work, also read [Design System](docs/dtab-os-v1/06-DESIGN-SYSTEM.md) and invoke/read [dtab-ios-design](.agents/skills/dtab-ios-design/SKILL.md). Pure database or deployment tasks do not need all visual references.
+
+The canonical skill is `.agents/skills/dtab-ios-design`; do not create a duplicate under `.codex/skills`. Its reference files route component, motion/accessibility and visual-review tasks. Shared dimensions and colors come from the DTab design system, not from unrelated third-party templates.
+
+External Apple-style projects are references only. Do not install their dependencies, copy their full skills, import their scripts or distribute Apple fonts/assets without a separate need and license review. Default to existing CSS/Motion and a small number of glass surfaces. Preserve reduced-motion, reduced-transparency, keyboard and zoom support.
+
+No approved OS mockups or browser visual results are implied by these documents. Use actual available designs; otherwise build a minimal browser sample against the specification and mark visual approval pending. A generated picture does not prove the UI works.
+
+## Model and agent routing
+
+Read [Model Routing](docs/dtab-os-v1/07-MODEL-ROUTING.md) before assigning work. Project recommendations are CORE: `gpt-5.6-sol` High; UI: `gpt-5.6-sol` Medium; milestone REVIEW: `gpt-6-astra` at a supported deeper effort. An optional Terra executor handles only narrowly scoped tasks after contracts are stable.
+
+Verify client/model/effort availability in M0. These instructions are not an automatic model switcher, and a Skill does not override the running model. Do not claim a switch or subagent run that was not actually performed. No active model configuration or approval policy is installed by this documentation.
+
+CORE owns shared tokens, desktop contracts/layout, lockfiles, migrations, Auth, Service Worker, media authorization and deployment. Parallel UI tasks own only their agreed directories; the reviewer is read-only by default. If the preferred review model is unavailable, use a separate available high-effort review session and disclose the substitution.
+
+Model strength does not waive tests, release gates, production authorization or protection of existing work. Record recommended role separately from the actual observable model; use unknown when the environment does not expose it.

@@ -1,0 +1,6 @@
+interface:
+  display_name: "DTab iOS 设计"
+  short_description: "DTab 主屏幕、Dock、商店和相册的统一视觉与交互规范"
+  default_prompt: "使用 $dtab-ios-design，依据仓库 PRD 和设计系统实现本轮界面任务，并报告真实截图、交互验证及未通过项。"
+policy:
+  allow_implicit_invocation: true
