@@ -1,6 +1,6 @@
 # DTab OS V1 — 实施文档入口
 
-版本：1.0 · 审查日期：2026-09-16（Asia/Singapore）
+版本：1.1 · 更新日期：2026-09-16（Asia/Singapore）
 
 > 本目录是新的实施目标，不是已完成功能清单。文档审查允许进入分阶段开发；真实部署、私有媒体、双设备同步等门槛尚未通过，不代表现在可直接商用上线。
 
@@ -14,7 +14,7 @@
 | [04-AUDIT.md](04-AUDIT.md) | 对此前讨论的修正、官方资料、实测门槛与尚未验证事项 |
 | [05-CODEX-TASKS.md](05-CODEX-TASKS.md) | 本地 Codex 任务顺序、交付物、检查表及可复制实施指令 |
 | [06-DESIGN-SYSTEM.md](06-DESIGN-SYSTEM.md) | DTab 视觉 token、五界面合同、材质/动效、响应式、可访问性及参考来源 |
-| [07-MODEL-ROUTING.md](07-MODEL-ROUTING.md) | 模型分工、实际可用性核对、风险升级、并行所有权和审查交接 |
+| [07-MODEL-ROUTING.md](07-MODEL-ROUTING.md) | 桌面截图证据、Astra/Sol/Terra 分工、档位待验证项、委派与交接 |
 | [dtab-ios-design Skill](../../.agents/skills/dtab-ios-design/SKILL.md) | 仓库专用设计技能，按任务读取组件、动效和视觉验收规范 |
 
 ## 已确认的产品决策
@@ -46,10 +46,14 @@ Next.js 16.x App Router + React 19 + TypeScript；Tailwind CSS 4 + shadcn/ui；M
 
 任何阶段必须满足：能构建、能验证、不丢旧数据、能回滚。先建立一个小闭环，不允许一次性重写全站。
 
-## 设计技能与模型补充（2026-09-16）
+## 设计技能与桌面模型补充（2026-09-16）
 
 设计任务可在支持的本地 Codex 中用 `/skills` 查找，或显式写 `$dtab-ios-design`。仓库使用官方当前的 `.agents/skills` 发现位置，不重复维护 `.codex/skills` 副本；拉取文件不等于已经验证用户本机加载。
 
-默认分工为 Sol High 负责核心、Sol Medium 实现常规 UI、Astra 做阶段审查；具体 ID、档位和替代方式见 07 文档。AGENTS.md/Skill 是执行说明，不会自行切换实际模型；本次未安装活动模型配置。
+用户使用 ChatGPT 桌面版。最新分工是 **Astra 规划/审查、Sol 核心/集成、Terra 中实现契约明确后的页面**，替代旧版“Sol Medium 默认做 UI”的规则。详细角色、M0–M5/M5-P 分配、实际档位和降级规则统一见 07 文档。
 
-本轮只补设计规范、原创建议和 Skill，没有安装外部 iOS/Liquid Glass 依赖，没有生成或批准 OS 设计稿，没有运行前端视觉测试。M0 检查技能/模型可用性，M1 建 token 与最小浏览器样例，后续阶段按 UI 检查表验收。
+用户截图已显示 **Sol 中、Astra 轻度、Terra 中**，底部当前选择是 Terra 中；这是选择器证据。高档位、每个模型的实际运行、分模型子 agent、Skill 触发和客户端版本仍待本机验证。没有把截图复制进仓库，也没有预填 M0 本机测试通过。
+
+官方已支持子 agent 的分模型/推理配置，但本次只更新规则，不安装活动 config.toml 或自定义 agent。AGENTS/Skill 不直接改变当前主会话模型；实际委派必须由支持的运行工具完成并留下可观察证据。不能证明并行隔离时顺序交接，不假装已自动切换。
+
+文档与设计补充未安装外部 iOS/Liquid Glass 依赖，未生成或批准 OS 设计稿，也未运行前端视觉测试。M0 检查技能/模型实际能力，M1 建 token 与最小浏览器样例，后续阶段按 UI 检查表验收。本地已有实施进度时先核对再继续，不因更新模型规则重做或覆盖已完成阶段。

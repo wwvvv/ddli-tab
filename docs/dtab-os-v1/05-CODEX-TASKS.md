@@ -1,6 +1,6 @@
 # DTab OS V1 — 本地 Codex 实施任务
 
-版本：1.0 · 2026-09-16
+版本：1.1 · 2026-09-16
 
 先阅读本目录 [README](README.md)、[PRD](01-PRD.md)、[技术架构](02-ARCHITECTURE.md)、[迁移方案](03-MIGRATION.md)、[审查记录](04-AUDIT.md)。根 [AGENTS.md](../../AGENTS.md) 是仓库级执行入口。
 
@@ -171,26 +171,32 @@ iOS/iPadOS 风格、单一 DTab 主域名、GitHub + EdgeOne + Supabase + 现有
 分阶段提交代码，报告变更文件、实际测试结果、风险、未验证项与回滚方法。禁止打印或提交任何密钥，禁止未经授权改生产 DNS、付费资源、公开可见性或删除数据。
 ```
 
-## 12. 设计系统、Skill 与模型补充（2026-09-16）
+## 12. 设计系统、Skill 与桌面模型分工（2026-09-16 更新）
 
 实施 UI 前读取 [06-DESIGN-SYSTEM.md](06-DESIGN-SYSTEM.md)，并使用 [dtab-ios-design](../../.agents/skills/dtab-ios-design/SKILL.md)；任务分配依照 [07-MODEL-ROUTING.md](07-MODEL-ROUTING.md)。这些补充不改变前面的阶段顺序和安全/迁移 gates。
 
-| 阶段 | 新增检查/交付 |
-| --- | --- |
-| M0 | 检查本地模型 ID/effort 和 `/skills` 发现结果，实际执行后记录 implementation/M0-MODELS.md。未检查标 not-run，不声称自动路由已生效 |
-| M1 | CORE 建立共享 token、基础控件和 Home/Dock/添加的最小浏览器样例；多尺寸/明暗验证后再扩展页面 |
-| M2 | 按 Skill 实现/审查 Home、Folder、Widget、图标与添加；布局核心仍由 CORE 单一负责 |
-| M3 | 设置与预设编辑保持统一 UI，不能为视觉简洁删除同步冲突、备份或权限说明 |
-| M4 | UI 可并行实现商店/相册展示；CORE 保留媒体授权、权益和共享 token 所有权；阶段结束做跨页面一致性审查 |
-| M5 | 按 Skill visual-review 清单提交真实截图和交互证据；REVIEW 在正式切换前核对视觉结果与原 A/G gates |
+用户使用 ChatGPT 桌面版。截图已经显示 Sol 中、Astra 轻度、Terra 中，当前输入区选中 Terra 中；这是选择器证据，不是完整运行验证。Sol 高、Astra 中/更高档位与分模型子 agent 仍待本机确认。不要求改用 CLI，不把活动模型配置写入本次文档提交。
 
-推荐 CORE=Sol High，UI=Sol Medium，REVIEW=Astra 的可用高推理档位；实际名称/可用性与降级规则以 07 文档为准。AGENTS.md 只提供规则，不自行切换模型、不启动不存在的子 agent。
+| 阶段 | 默认模型分工 | 新增检查/交付 |
+| --- | --- | --- |
+| M0 | Sol 核心，Astra 审查 | 检查桌面模型/档位、实际运行证据与 Skill；执行后记录 implementation/M0-MODELS.md，分别记录 picker-visible / selected-ui / runtime-verified，未测试不填通过 |
+| M1 | Sol 核心；Astra 阶段审查 | CORE 建共享 token、基础控件和 Home/Dock/添加最小浏览器样例；多尺寸/明暗验证后再扩展页面 |
+| M2 | Sol 核心 + Terra 中展示 | 按 Skill 实现 Home、Folder、Widget、图标和添加；布局/数据/迁移仍由 Sol 单一负责 |
+| M3 | Sol 数据/权限 + Terra 中设置展示 | 设置与预设统一 UI；Astra 审查账号、同步、预设；不删冲突、备份或权限说明 |
+| M4 | Sol 服务/集成 + Terra 中页面 | 商店/相册展示可在隔离工作区并行；Sol 保留媒体授权、权益和共享 token；Astra 审查跨页面一致性与安全 |
+| M5 | Sol 集成 + Astra 审查 | Terra 只做明确展示修复；按 visual-review 提交真实截图/交互证据，切换前检查原 A/G gates |
+| M5-P | Sol 计费核心 + Astra 审查 | Terra 仅实现已定账单显示；不启用未获授权、未验收的真实收费 |
+
+Sol 核心目标档位优先高，未确认时可用已显示的中做基线与已界定任务；Astra 目标为中或更高可选档位，截图只见轻度，使用时记录实际档位与审查局限。Terra 页面默认中。精确替代规则和风险升级以 07 文档为准，不把“目标高”写成“高已验证”。
+
+官方支持的子 agent 模型选择机制与当前主会话手工切换是两回事。能够由真实工具委派时按实际结果记录；只有文字角色模拟时不得声称多个模型已执行。多个会话也不自动代表多个隔离 worktree；不能隔离写入时顺序执行。
 
 在第 11 节启动指令后可补充：
 
 ```text
-UI 任务使用 $dtab-ios-design，并读取 06-DESIGN-SYSTEM 和 07-MODEL-ROUTING。
-先按当前阶段执行；没有已确认设计稿时按规范制作最小浏览器样例并标待确认。
-不要安装外部 iOS/Liquid Glass UI 库，不复制 Apple 字体/图标，不每个页面重新发明 token。
-模型与 Skill 在本机实际检查后再记录成功，不能仅因文档存在就认定已启用。
+我使用 ChatGPT 桌面版。按 07-MODEL-ROUTING v1.1 分工：Sol 核心与集成、Terra 中实现契约已定的页面、Astra 独立规划/审查。
+当前截图只确认 Sol 中、Astra 轻度、Terra 中；高档位及实际子 agent 模型需核实。不能观察运行信息就写 unknown，不自称已经换模型。
+UI 使用 $dtab-ios-design 和 06-DESIGN-SYSTEM。先检查本地已有进度，继续未完成阶段；只有尚未开始才从 M0 进入，不覆盖已完成代码。
+没有已确认设计稿时按规范做最小浏览器样例并标待确认。不要安装外部 iOS/Liquid Glass UI 库或复制 Apple 字体/图标，不每页重新发明 token。
+碰到 schema/Auth/RLS/SW/媒体权限/支付/部署/共享 token 变更，停止页面任务扩散并交接给 Sol。没有可用委派工具就顺序交接，不伪造并行、不跳过测试。
 ```
