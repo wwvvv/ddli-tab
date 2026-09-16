@@ -1,8 +1,8 @@
 # DTab OS V1 技术架构
 
-版本：1.0 · 2026-09-16
+版本：1.1 · 2026-09-16
 
-本文件描述目标实现，不声称依赖已安装或云环境已验收。约束与证据见 [04-AUDIT.md](04-AUDIT.md)，迁移顺序见 [03-MIGRATION.md](03-MIGRATION.md)。
+本文件描述目标实现，不声称依赖已安装或云环境已验收。约束与证据见 [04-AUDIT.md](04-AUDIT.md)，迁移顺序见 [03-MIGRATION.md](03-MIGRATION.md)。初期商业规则以 [08-BILLING.md](08-BILLING.md) 为准。
 
 ## 1. 技术栈决策
 
@@ -22,9 +22,9 @@
 | 开发与测试 | GitHub、pnpm workspace、Vitest、Playwright | 原 npm 工程经原子迁移再换 pnpm；本次文档不改 lockfile |
 | 扩展 | Manifest V3 + TypeScript | 保留主动收藏能力，复用受限桥；不运行商店远程代码 |
 
-Next.js 16 是本次查阅时的 Active LTS，但具体补丁、React/TypeScript/Node/pnpm 组合必须在 M0 查询注册表和安全公告后精确锁定。不要盲目沿用聊天中的“16.3.3 就是最新版”，也不要直接安装 canary。官方资料见审查记录 S01–S12。
+Next.js 16 是原始审查查阅时的 Active LTS，但具体补丁、React/TypeScript/Node/pnpm 组合必须在 M0 查询注册表和安全公告后精确锁定。不要盲目沿用聊天中的“16.3.3 就是最新版”，也不要直接安装 canary。官方资料见审查记录 S01–S12。
 
-不引入 Prisma/Drizzle 第二套迁移系统、Redux Saga、Redis、微服务、Electron、生产 Docker/VPS。已有 Docker 只用于本地数据库测试，不等于生产自建数据库。
+Core V1 不引入 Prisma/Drizzle 第二套迁移系统、Redux Saga、Redis、微服务、Electron、生产 Docker/VPS。已有 Docker 只用于本地数据库测试，不等于生产自建数据库。后续大型应用与 New API 可有独立容器/数据服务，但不得因此把它们变成 V1 前置依赖。
 
 ## 2. 系统边界与一个域名
 
@@ -32,7 +32,7 @@ Next.js 16 是本次查阅时的 Active LTS，但具体补丁、React/TypeScript
 GitHub 源码与 CI
        |
        v
-一个 DTab 主域名 / EdgeOne
+一个 DTab Core 主域名 / EdgeOne
   ├─ Next.js 主屏幕、商店、相册、设置、Admin
   ├─ /api/v1/* 业务 API / 身份与权限校验
   └─ /media/* 受控读取或经验证的同域媒体数据通道
@@ -42,11 +42,13 @@ GitHub 源码与 CI
    桌面/资产归属/商品/权益      文件、目录、处理、存储渠道
 ```
 
-一个域名指 DTab 页面、管理与业务入口不用拆成多个站点。Supabase/既有 ImgBed 的技术上游地址不是新产品站点；它们仍需可达，不能宣称 DNS 名称不存在。用户不得被要求配置这些地址或存储渠道。
+一个域名约束适用于 DTab Core 页面、管理与业务入口。Supabase/既有 ImgBed 的技术上游地址不是新产品站点；它们仍需可达，不能宣称 DNS 名称不存在。用户不得被要求配置这些地址或存储渠道。
+
+用户已允许未来大型官方独立应用使用自定义域名与独立部署，新窗口/标签页运行，不嵌入 Core。统一身份/权益/API 集成见第 13 节；这不修改当前 Core 的部署选择。
 
 正式路径为 `/`、`/store`、`/gallery`、`/settings`、`/admin`、`/app/[appId]`、`/api/v1/*`、`/media/*`。迁移阶段新 UI 用 `/os/*`；不要在源代码到处写死 `/os`，使用统一 basePath/路由函数。
 
-商业/用户响应不使用公共 ISR。公开商店文案和官方资源可缓存；登录响应、Set-Cookie、相册、订单、管理和私有媒体必须禁止共享缓存。一个 Next.js 应用和一个生产 EdgeOne 项目为目标；预览部署只是部署环境，不建立第二套对外产品。
+商业/用户响应不使用公共 ISR。公开商店文案和官方资源可缓存；登录响应、Set-Cookie、相册、订单、管理和私有媒体必须禁止共享缓存。Core 以一个 Next.js 应用和一个生产 EdgeOne 项目为目标；预览部署只是部署环境，不建立第二套对外 Core 产品。
 
 ## 3. 源码组织
 
@@ -80,7 +82,7 @@ supabase/tests/            数据库权限与一致性测试
 - Entity：网址、官方应用快捷方式、组件实例或文件夹的定义。
 - Placement：一个定义在桌面/Dock/文件夹中的放置位置。
 - Installation：用户启用了某个官方商品/应用。
-- Entitlement：平台授予的付费权益，不由桌面导入和本地安装记录决定。
+- Entitlement：平台授予的权益，不由桌面导入和本地安装记录决定；初期只销售一个会员，不销售应用单品。
 
 同一网址可在桌面与 Dock 各有一条 Placement，编辑同一个 Entity 的名称/图标后同步显示；删除其中一条 Placement 不删除 Entity 或另一条放置。组件各有独立实例 ID。禁止文件夹循环引用。
 
@@ -131,7 +133,7 @@ Zustand 不另存一份持久化全集。命令 → schema/约束校验 → Dexi
 | sync_receipts | user_id、desktop_id、request_id、payload_hash、result_revision；唯一请求收据 |
 | desktop_presets | id、name、active_version_id；发布指针，不覆盖旧版本 |
 | desktop_preset_versions | id、preset_id、version、payload、state、published_at；发布版本不可变 |
-| products | id、slug unique、kind、app_id/widget_id/theme_id、status、access_policy；仅官方 |
+| products | id、slug unique、kind、app_id/widget_id/theme_id、status、access_policy；仅官方，内容发现不等于单品销售 |
 | product_versions | id、product_id、version、min_client_version、release_id、asset_refs；不可把入口设为任意 URL |
 | web_resources | id、title、url、icon、category、published；网址库不产生购买权益 |
 | user_installations | user_id、product_id、enabled、version_policy；unique(user_id,product_id) |
@@ -148,7 +150,7 @@ Zustand 不另存一份持久化全集。命令 → schema/约束校验 → Dexi
 
 media_assets 是 DTab 用户归属、访问控制、计量与引用的业务真源，不能因为 ImgBed 有文件列表就省掉。ImgBed 负责文件本身，不代替用户相簿/收藏/隐私数据库。必要的 mime、size、hash 是业务索引，不是重复建设整个图床。
 
-支付启用时再增加 orders、order_items、payment_events、refunds，金额用最小货币单位整数并保存 currency。价格由服务端商品快照生成，权益来源可追溯。不要先生成无人使用的提现/分账表。
+支付启用时再增加 orders、order_items、payment_events、refunds，金额用最小货币单位整数并保存 currency。价格由服务端商品快照生成，权益来源可追溯。初期可售对象仅会员与积分包；不要先生成无人使用的提现/分账表或单品商城。
 
 ## 5. 云同步协议
 
@@ -174,7 +176,7 @@ V1 使用一份有界桌面 document + 服务端 revision 的乐观并发控制�
 
 所有暴露表启用 RLS，并显式设置操作 grants；service_role/secret 能绕过 RLS，只在 server-only 模块中使用。普通个人业务优先带用户身份访问，避免全站都用高权限客户端。管理客户端每次调用都必须经过权限与对象归属检查。
 
-最小角色：user、admin。pro/买断/额度属于 entitlement，不是角色。公开商品只允许读取 published 内容；草稿、角色、上传路径与运维信息禁止公开。
+最小角色：user、admin。会员属于有效期权益，不是管理员角色；AI 积分余额属于网关计费状态，不由 RLS 中一个可写数字授予。公开商品只允许读取 published 内容；草稿、角色、上传路径与运维信息禁止公开。
 
 关键表要测试跨用户 SELECT/INSERT/UPDATE/DELETE，尤其是修改 owner_id、关联别人的相簿/资产和直接写权益。SQL SECURITY DEFINER 函数必须固定安全 search_path、校验 auth.uid() 与账号状态、限制 EXECUTE，并避免公开任意 SQL/表名参数。
 
@@ -188,7 +190,11 @@ App Registry 定义“能运行什么”；Product 定义“展示什么、如�
 
 官方主题是经过 schema 校验的 token、图标映射与资源引用，禁止任意 script、HTML、远程 CSS @import。用户自定义图标优先于主题自动图标，除非用户主动重置。
 
-V1 只有 native 运行时。未来 sandbox 是新架构阶段，不预实现、不把任意上传脚本作为可信官方应用。单个路径不是浏览器 origin 隔离；开放第三方时必须重新做安全设计，不能仅增加 creator_id 就宣布平台完成。
+V1 可执行应用只有 native 运行时。后续官方 external 类型允许预留禁用状态的契约，但不能在尚未接入身份/权益时直接 window.open 任意 URL 并标为可用收费应用。未来 sandbox 是另一阶段，不把任意上传脚本作为可信官方应用。单个路径不是浏览器 origin 隔离；开放第三方时必须重新做安全设计，不能仅增加 creator_id 就宣布平台完成。
+
+收费策略按操作而不是整个应用判断。应用入口可要求登录；操作可要求会员权益，计费模式只区分 `none` 或经网关验证的 `points`。例如普通去水印为 member + none，智能修复为 authenticated + points；基础画布为 authenticated + none，高级工作流可要求 member。网关绑定、允许模型、参数与报价规则由服务端配置，不相信客户端送来的 price/user_id/entitlement。
+
+会员与积分不是互斥的应用类型：拥有会员仍可能消耗积分，未开会员也可购买积分使用可用操作。免费次数是独立试用限制，不发展成第三个钱包；纯前端限制无法成为强计费边界。
 
 ## 8. 官方 ImgBed 集成
 
@@ -275,10 +281,65 @@ M0 必须验证 Next.js 16 + React + Tailwind + Node + EdgeOne 适配。Cloud Fu
 
 数据库变更只新增/扩展，不直接删除旧表。开发/CI 的本地 Supabase/Postgres 测试不得连接生产。部署失败的回滚不仅回代码，还要处理旧 SW 与前向数据兼容。
 
-## 12. 商业化开关与未来扩展
+## 12. 商业化：一个会员、积分包、单一 AI 计费真源
 
-先完成 Product、Installation、Entitlement 边界；paymentEnabled 默认 false。启用真实支付时验签原始回调、校验商户/金额/币种、幂等写 payment_events、事务授予权益、支持退款撤销，前端返回页不作为支付成功依据。
+### 12.1 当前规则
 
-本地纯前端功能无法仅靠前端开关做强授权；持续云能力在服务端检查。用户可导出自己的数据，不能以会员到期锁住本地书签。不得根据未知 AI 成本承诺无限额度。
+[08-BILLING.md](08-BILLING.md) 是唯一初期收费合同。只售一个 DTab 会员及积分包；免费内容/会员功能由 Entitlement 控制，按次付费操作使用积分。月付/年付是同一等级，不增加 Max、每应用 VIP 或单品买断。
 
-后续聊天/阅读器/AI 萌宠沿 App Registry 接入；不为了未来功能提前部署消息服务器/模型服务。第三方生态另立规范、隔离和审查阶段，尤其不得在当前单域名下直接运行任意用户 HTML/JS。
+先完成 Product、Installation、Entitlement 边界；paymentEnabled 默认 false。AI 与积分购买也单独禁用，直到真实能力及相应 B gates 通过。启用支付时验签原始回调、校验商户/金额/币种、幂等写 payment_events；前端返回页不作为支付成功依据。
+
+本地纯前端功能无法仅靠前端开关做强授权；持续云能力在服务端检查。用户可导出自己的数据，不能以会员到期锁住本地书签/项目。不得根据未知 AI 成本承诺无限额度，也不把普通去水印这类本地工具人为改成网关扣点。
+
+### 12.2 New API 适配，不重造余额
+
+未来数据流：
+
+```text
+DTab Account / 会员 / 订单 / 平台权益
+                    |
+          DTab Billing Adapter
+          身份映射、授予事件、查询、对账
+                    |
+            独立部署的 New API
+      Daily Subscription / Wallet / 模型计价
+           预扣、调用、结算、退款、日志
+                    |
+               模型供应商
+```
+
+New API 负责 AI 配额与实际扣费；DTab 不再实现 points_balance/AI Cost Engine 作为第二套权威。每日积分映射 daily subscription，购买积分映射 wallet。DTab 保留会员订单、授予事件与对账缓存，不根据缓存余额直接允许消耗。
+
+普通用户首次使用 AI 时可按需建立网关身份；用户映射与应用 Token 区分。一用户多应用共享网关账户额度，凭据只在受控后端使用；具体开户/发证 API 必须验证，不假设管理员 Key 可传任意 user_id 代用户创建 Token。
+
+以固定、版本化规则将 quota 展示成积分，保留实际精度，禁止每条调用在 DTab 再按整数积分二次扣费。报价来自相同计费规则，区分估计、固定价、预留上限与最终费用。New API 配置费用是对账输入，不直接等同供应商账单。
+
+同一每日池不能既由 New API reset，又被 DTab cron 累加。业务时区、当日升级差额、到期降级、多订阅互斥、跨池不足/最终补扣与跨午夜退款均属 B gates；“daily/overflow 字段存在”不等于语义全部符合。
+
+### 12.3 控制面与交易一致性
+
+商业/AI 阶段才增加受保护的 gateway_identity_bindings、gateway_app_credentials、billing_grant_events、gateway_operation_receipts 等所需记录，名称在实施契约中统一；不提前在生产建表。至少包含环境、DTab user/app、网关对象 ID、源订单/事件、规则版本、幂等键、结果收据和 pending_reconciliation 状态。
+
+签名支付事件确认后，通过持久 outbox 驱动授予；远端成功但响应丢失时先对账，不盲目重试。只有本地唯一键不能保证远端 exactly-once；没有可核对的原版 API 能力时先停自动发放，评估受限补丁而不是直改网关数据库。
+
+取消续费不撤销已支付的剩余权益；退款/封禁撤权是独立流程。每日重置不删除购买余额，积分消费退款不能在 DTab 和 New API 双退。
+
+有成本的请求经 App/User/Operation 验证后交给网关；后端不接受浏览器自报的扣费金额或身份。未被网关支持的普通付费 API 不能靠“积分”标签假装已被计量；验证适配/插件之前禁止该积分路径，不为它新建并行钱包。
+
+### 12.4 部署与测试
+
+优先原版 New API + Adapter，只有证实缺口才薄 Fork。它与长连接、任务调度的运行需求在 AI 阶段单独验证，不强行全部放进 EdgeOne 小函数。数据库、网关配置与插件版本独立管理，不与 Supabase auth 表混写。
+
+锁定验收过的 release/commit、镜像摘要、插件与计价规则版本，禁止 latest 自动上线。预览使用测试账本/非敏感样本，不自动调用真实付费模型。发布要求原 A/G gates 加 08 文档的 B01–B14；源码审查、mock 和真实账单联调分别记录，缺环境写 blocked。
+
+## 13. 未来大型独立应用边界（不扩张 Core V1）
+
+轻量原生应用沿 App Registry 接入；大型官方应用可以采用 external、独立域名/仓库/容器/领域数据库，在新的浏览器上下文打开。主仓只预留类型和受控 launch 接口；未接入前保持 disabled，不增加一个绕过权限的裸 URL 启动器。
+
+没有有效 App Session 时由应用导航返回 DTab 完成登录与授权；已经有合法会话可以继续工作。统一入口不代表强制会员，不用 Referer、cookie 存在或点击桌面作为授权证据。API 请求返回认证错误而非 HTML 登录重定向。
+
+SSO/启动凭据设计在接入前专门审查：精确回调/域名白名单、与浏览器事务绑定的 state/防登录 CSRF、一次性过期码的原子兑换、应用身份认证、独立会话/撤销、受控深链及每次付费操作鉴权。不得把 Supabase 或 New API 长期 token 放到 URL；不能在所有自定义域名间共享一个万能 Cookie。
+
+Infinite Canvas 的领域逻辑/UI/数据迁移尽量保持上游，仅增加受审的身份/平台能力 Adapter。平台模式不另扣一套算力点，不对用户开放绕过平台的官方 API Key。上游更新进入独立 PR/预览，测试登录、权限、New API 协议、退款、文件与数据库后批准发布，不承诺无冲突或主仓永不需要协议升级。
+
+第三方开放生态另立规范、隔离和审查阶段，尤其不得在当前单域名下直接运行任意用户 HTML/JS。官方受管应用及开源许可证义务不能因独立域名而自动豁免。

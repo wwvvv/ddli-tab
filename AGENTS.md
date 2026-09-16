@@ -12,15 +12,16 @@ Before OS-related changes, read:
 4. [Migration](docs/dtab-os-v1/03-MIGRATION.md)
 5. [Audit and release gates](docs/dtab-os-v1/04-AUDIT.md)
 6. [Codex tasks](docs/dtab-os-v1/05-CODEX-TASKS.md)
+7. [Billing policy](docs/dtab-os-v1/08-BILLING.md) for membership, points, paid actions and future managed-app integration.
 
 These files describe the accepted OS V1 implementation target. Existing README/build instructions remain the source for running the current legacy version until the relevant implementation commit updates them. Later explicit user decisions take precedence over this specification; record material changes instead of silently contradicting it.
 
 ## Hard product boundaries
 
 - iOS/iPadOS-style web OS with DTab-owned visual assets; not Windows/Android.
-- One DTab product domain, path-based desktop/store/gallery/settings/admin.
+- One DTab Core product domain, path-based desktop/store/gallery/settings/admin. Future official managed applications may use custom domains and independent deployments; this does not add them to V1.
 - GitHub + EdgeOne + Supabase + the existing official CloudFlare ImgBed service.
-- No Firebase, new image-hosting system, user-provided storage, required production VPS/Redis/microservices.
+- No Firebase, new image-hosting system, user-provided storage, required production VPS/Redis/microservices for Core V1. Future New API/managed-app runtime requirements are separately evaluated, not silently deployed.
 - Official-only store in V1. No Creator onboarding, third-party executable uploads, revenue sharing or payouts.
 - Keep web shortcuts, user add/edit actions, user-uploaded icons, folders and widgets.
 - Official preset editor and immutable published versions; never overwrite an existing user's desktop automatically.
@@ -75,3 +76,17 @@ These Markdown instructions do not themselves reconfigure the current main sessi
 CORE owns shared tokens, desktop contracts/layout, lockfiles, migrations, Auth, Service Worker, media authorization and deployment. Terra UI tasks own only their agreed directories and tests; the reviewer is read-only by default. Multiple conversations do not prove worktree isolation. If isolated parallel writes cannot be established, execute sequentially; never let agents compete over the same writable workspace.
 
 Model strength does not waive tests, release gates, production authorization or protection of existing work. Record recommended role separately from the actual observable model; use unknown when the environment does not expose it. Inspect existing implementation progress before starting; do not redo or overwrite completed stages merely because the model policy changed.
+
+## Commercial policy — confirmed 2026-09-16
+
+The canonical initial policy is [08-BILLING.md](docs/dtab-os-v1/08-BILLING.md): free use + ONE paid DTab membership + points packs. Do not implement Free/Pro/Max tiers, per-app VIPs, paid theme/tool buyouts, promotional third wallets or a new AI credits engine. Monthly/yearly membership options represent the same tier.
+
+Daily points reset without rollover; purchased points do not reset with the day or membership expiry. No mandatory check-in. Exact prices, points allocations and quota conversion are not approved production values. Keep payment/AI purchase entry disabled until the corresponding feature and billing gates pass.
+
+Membership-included low-marginal-cost tools do not deduct points. AI and supported per-use paid APIs may use points; classify OPERATIONS, not entire app names. The basic AI Studio workspace is not automatically membership-only. Users may buy points without membership. Do not promise unlimited server compute or charge for downloading an already processed result without advance disclosure.
+
+New API is the intended authority for AI quota and settlement; DTab owns account, orders, entitlements, grant events and reconciliation. Do not create a second writable AI balance, a parallel model pricing table or an additional debit inside Infinite Canvas. New API wallet fallback is not proof of difference-only split charging: test that behavior, daily reset timezone, cross-midnight tasks/refunds, concurrency and remote grant idempotency before charging users.
+
+Unsupported paid APIs require an audited gateway adapter or stay unavailable; never pretend New API meters arbitrary HTTP services. Keep gateway credentials on the server, bind actual app/user identity, and verify each paid action. Desktop entry, a hidden login button, local counters and Referer are not authorization.
+
+This document update does not authorize deploying New API, enabling paid calls, provisioning external services or replacing V1's M0–M5 sequence. Future managed apps preserve upstream code through limited adapters and reviewed updates, with independent custom domains/sessions; integration and billing are separate release gates.
