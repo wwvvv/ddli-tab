@@ -21,6 +21,7 @@ jobs:
       - run: npm run build:extension
       - run: npx --yes --package=node@22.11.0 node scripts/check-production.mjs
       - run: npm test
+      - run: npm run test:sw
       - run: docker pull postgres:17-alpine
       - run: npm run test:db
       - run: npx playwright install --with-deps chromium

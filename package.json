@@ -12,6 +12,7 @@
     "preview": "node scripts/serve-original.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
+    "test:sw": "node --test scripts/test-service-worker.mjs",
     "test:e2e": "playwright test",
     "format:check": "prettier --check \"src/local/**/*.ts\" \"scripts/*.mjs\"",
     "test:db": "node scripts/test-database.mjs",
