@@ -14,3 +14,7 @@ original-first.png
 experiments/
 
 dist-extension/
+
+# Build lock/staging/recovery directories; inspect before manual removal.
+.dtab-build.lock/
+.dtab-build-*/

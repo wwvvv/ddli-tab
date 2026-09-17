@@ -6,7 +6,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const tempRoot = await fs.realpath(os.tmpdir());
 const workspace = await fs.mkdtemp(path.join(tempRoot, 'dtab-production-check-'));
 try {
-  for (const file of ['package.json', 'package-lock.json'])
+  for (const file of ['package.json', 'package-lock.json', 'edgeone.json'])
     await fs.copyFile(path.join(root, file), path.join(workspace, file));
   for (const dir of ['scripts', 'src', 'config', 'legacy'])
     await fs.cp(path.join(root, dir), path.join(workspace, dir), { recursive: true });
@@ -17,6 +17,10 @@ try {
     shell: process.platform === 'win32',
   });
   execFileSync(process.execPath, ['scripts/build-original.mjs'], {
+    cwd: workspace,
+    stdio: 'inherit',
+  });
+  execFileSync(process.execPath, ['scripts/check-deployment.mjs'], {
     cwd: workspace,
     stdio: 'inherit',
   });

@@ -13,11 +13,14 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "test:e2e": "playwright test",
-    "format:check": "prettier --check \"src/local/**/*.ts\" \"scripts/*.mjs\"",
+    "format:check": "prettier --check \"src/local/**/*.ts\" \"scripts/**/*.mjs\"",
     "test:db": "node scripts/test-database.mjs",
     "build:edge": "node scripts/build-original.mjs",
     "test:production": "node scripts/check-production.mjs",
-    "build:extension": "node scripts/build-extension.mjs"
+    "build:extension": "node scripts/build-extension.mjs",
+    "test:deployment": "node --test scripts/test-deployment.mjs",
+    "check:edge": "node scripts/check-deployment.mjs",
+    "verify:edge": "npm run build:edge && npm run check:edge"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
