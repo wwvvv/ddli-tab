@@ -10,7 +10,8 @@
 | --- | --- | --- |
 | `1f5b177` | build(m1): pnpm workspace 迁移 + 脚本复验 + CI/部署/文档 | 已提交 |
 | `ccc3fec` | feat(m1): apps/web Next.js 源码壳 + /os registry 导航 + health API + os e2e | 已提交 |
-| （本提交） | feat(m1): 根 SW 允许列表（/api/v1/*、/os* passthrough）+ legacy 兼容测试 + 配置调整 | 已提交 |
+| `f224cba` | feat(m1): 根 SW 允许列表（/api/v1/*、/os* passthrough）+ legacy 兼容测试 + 配置调整 | 已提交 |
+| （本提交） | docs(m1): 补跑 test:db 通过（Docker Desktop 启动后），更新实施报告 | 已提交 |
 
 ## 2. Commit A — pnpm workspace 迁移（单一 lockfile，可回滚）
 
@@ -105,6 +106,6 @@
 - **EdgeOne 线上部署**：新 installCommand（全局装 pnpm）未在真实 EdgeOne 构建环境执行过，pending；`edgeone.json` 的 `/* → /index.html` 通配 rewrite 与 Next.js SSR/Functions 的适配是 M1 后独立事项（M0 风险清单第 2 条仍未消除）。
 - **GitHub Actions 云端 CI**：checks.yml 重写后未在远端跑过；首次 push 需观察 pnpm/action-setup、`--frozen-lockfile`、两个 e2e job。
 - **legacy e2e 命令级退出码**：M0 的 worker teardown 挂死本轮未复现（19 passed, 2.5m 正常返回）；该环境问题是否彻底消除仍需后续多轮观察。
-- **test:db**：仍 blocked（Docker Desktop 守护进程未运行），与本轮改动无关。
+- **test:db**：已补跑通过（2026-09-17，Docker Desktop 启动后）。`docker pull postgres:17-alpine`（digest `sha256:18cfe3ef…`）→ `pnpm run test:db` EXIT=0：隔离容器（`--network none`、trust 认证、`--rm`）内依次执行 local-auth-harness.sql（2 角色 + harness schema/函数）、`202609100001_personal_sync.sql` 迁移（RLS 策略/函数，事务 COMMIT）、personal-sync.sql（双用户 set_config 上下文下的权限与 revision 断言），末行 `DTab SQL permission and revision tests passed`；测试容器已被脚本 finally 自动清理（`docker ps -a` 无残留）。至此 M1 涉及的全部测试命令（install/build/test/build:extension/test:production/build:web/typecheck/test:e2e:os/legacy e2e/test:db）均已实际执行通过。
 - **pnpm `--prod` 生产检查**仅在 Windows 复验；Linux 云环境未验证。
 - 本报告不含任何凭据或 `.env` 值。
