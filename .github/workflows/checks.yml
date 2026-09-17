@@ -16,8 +16,10 @@ jobs:
         with:
           node-version: '24'
           cache: npm
+      - run: npm run test:deployment
       - run: npm ci
       - run: npm run build
+      - run: npm run check:edge
       - run: npm run build:extension
       - run: npx --yes --package=node@22.11.0 node scripts/check-production.mjs
       - run: npm test
