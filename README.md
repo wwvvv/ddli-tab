@@ -14,19 +14,20 @@
 
 ## 本地运行
 
-使用 Node.js 24：
+使用 Node.js 24 与 pnpm（仓库单一 lockfile 为 pnpm-lock.yaml）：
 
 ```sh
-npm ci
-npm run build
-npm run preview -- --port 4173
+npm i -g pnpm@11.7.0
+pnpm install
+pnpm run build
+pnpm run preview -- --port 4173
 ```
 
 打开 http://127.0.0.1:4173/ 。预览进程只提供静态文件，不运行 Go 或业务 API。首次打开需要加载并缓存约 10 MB 原版资源，之后可断网重新打开。生产托管需 HTTPS，且当前构建部署在域名根路径。
 
 ```sh
-npm test
-npm run test:e2e
+pnpm test
+pnpm run test:e2e
 ```
 
 浏览器测试使用本机 Microsoft Edge。
@@ -61,10 +62,10 @@ npm run test:e2e
 
 config/default-template.json 保存版本化的初始布局和卡片，不依属于管理员账号。启动器仅对新浏览器复制一次；发布新模板不会覆盖已有收藏。模板不包含账号或会话。完整上线进度见 docs/launch-checklist.md。
 
-站点级名称与功能开关统一在 src/local/site-settings.ts 修改，构建输出的站点脚本与 API 使用同一份配置。管理员个人数据不参与生成。开发与 CI 使用 Node.js 24；EdgeOne 生产构建支持其预装 Node.js 22.11.0，执行 npm ci --omit=dev 和 npm run build:edge。
+站点级名称与功能开关统一在 src/local/site-settings.ts 修改，构建输出的站点脚本与 API 使用同一份配置。管理员个人数据不参与生成。开发与 CI 使用 Node.js 24 + pnpm；EdgeOne 生产构建支持其预装 Node.js 22.11.0，安装命令为 npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile，构建命令为 pnpm run build:edge。
 ## Supabase 环境配置与账号入口
 
-复制根目录 `.env.example` 为 `.env.local`，在本机填写 `VITE_SUPABASE_URL` 与 `VITE_SUPABASE_PUBLISHABLE_KEY`，再执行 `npm run build`。仅接受 `sb_publishable_` 公共密钥；数据库密码、Secret/service_role 密钥不要写入构建环境。该两项公共配置会进入前端构建产物，数据安全依赖登录身份与数据库 RLS。
+复制根目录 `.env.example` 为 `.env.local`，在本机填写 `VITE_SUPABASE_URL` 与 `VITE_SUPABASE_PUBLISHABLE_KEY`，再执行 `pnpm run build`。仅接受 `sb_publishable_` 公共密钥；数据库密码、Secret/service_role 密钥不要写入构建环境。该两项公共配置会进入前端构建产物，数据安全依赖登录身份与数据库 RLS。
 
 原版侧边栏的“迁移备份”页已整合 Supabase SDK 的邮箱注册、登录和退出。未配置时保持本地模式并显示提示，原版导入、导出与迁移功能不受影响。同步传输层已对接查询与 RPC。首次登录后需明确选择“以本地数据启用同步”或“使用云端数据启用同步”；启用后编辑防抖上传、每 15 秒拉取，并在恢复联网后重试。界面显示冲突时停止上传，可导出双方队列备份并明确选择整份本地或云端版本。
 

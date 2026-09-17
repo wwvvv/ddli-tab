@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm ci --omit=dev",
-  "buildCommand": "npm run build:edge",
+  "installCommand": "npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm run build:edge",
   "outputDirectory": "dist-original",
   "nodeVersion": "22.11.0",
   "rewrites": [{ "source": "/*", "destination": "/index.html" }],

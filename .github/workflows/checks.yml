@@ -12,18 +12,19 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4（读取 packageManager 字段）
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npm run build:extension
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm run build:extension
       - run: npx --yes --package=node@22.11.0 node scripts/check-production.mjs
-      - run: npm test
+      - run: pnpm test
       - run: docker pull postgres:17-alpine
-      - run: npm run test:db
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - run: pnpm run test:db
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm run test:e2e
 
 

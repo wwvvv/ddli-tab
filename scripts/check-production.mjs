@@ -6,16 +6,20 @@ const root = path.resolve(import.meta.dirname, '..');
 const tempRoot = await fs.realpath(os.tmpdir());
 const workspace = await fs.mkdtemp(path.join(tempRoot, 'dtab-production-check-'));
 try {
-  for (const file of ['package.json', 'package-lock.json'])
+  for (const file of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'])
     await fs.copyFile(path.join(root, file), path.join(workspace, file));
   for (const dir of ['scripts', 'src', 'config', 'legacy'])
     await fs.cp(path.join(root, dir), path.join(workspace, dir), { recursive: true });
   // Deliberately do not copy .env files, node_modules, previous builds or credentials.
-  execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['ci', '--omit=dev'], {
-    cwd: workspace,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
+  execFileSync(
+    'pnpm',
+    ['install', '--prod', '--frozen-lockfile'],
+    {
+      cwd: workspace,
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    },
+  );
   execFileSync(process.execPath, ['scripts/build-original.mjs'], {
     cwd: workspace,
     stdio: 'inherit',

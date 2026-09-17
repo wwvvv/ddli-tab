@@ -6,9 +6,10 @@
   "engines": {
     "node": ">=22.11.0"
   },
+  "packageManager": "pnpm@11.7.0",
   "scripts": {
     "build": "tsc --noEmit && node scripts/build-original.mjs",
-    "dev": "npm run build && node scripts/serve-original.mjs",
+    "dev": "pnpm run build && node scripts/serve-original.mjs",
     "preview": "node scripts/serve-original.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
