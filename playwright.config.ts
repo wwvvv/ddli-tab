@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
+  testIgnore: ['tests/os/**'], // /os 用例使用 playwright.os.config.ts
   workers: 1,
   timeout: 45000,
   use: {
