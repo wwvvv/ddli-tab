@@ -14,7 +14,7 @@
 - 安装命令：npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile
 - 构建命令：pnpm run build:edge
 - 输出目录：dist-original
-- Node.js：22.11.0
+- Node.js：22.22.2（不得低于 22.13：pnpm 11.7.0 硬性要求 Node ≥ 22.13，22.11.0 会使安装命令直接失败——2026-09-17 GitHub CI 首跑已复现该冲突）
 
 仓库使用 pnpm 作为唯一包管理器（pnpm-lock.yaml 单一 lockfile）。完整类型检查、测试在 Node 24 的 GitHub CI 执行。生产安装通过 --frozen-lockfile 与提交的 lockfile 保持一致。
 

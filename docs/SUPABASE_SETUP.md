@@ -33,10 +33,10 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_你的公开密钥
 
 ## 5. 手动部署 EdgeOne
 导入 GitHub 仓库 wwvvv/ddli-tab 的 main 分支，根目录为仓库根目录：
-- 安装：npm ci --omit=dev
-- 构建：npm run build:edge
+- 安装：npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile
+- 构建：pnpm run build:edge
 - 输出：dist-original
-- Node：22.11.0
+- Node：22.22.2（pnpm 11.7.0 要求 Node ≥ 22.13）
 
 在生产环境变量中填写第 4 步两项；更改变量必须重新构建。完整缓存、回滚和验收见 DEPLOY_EDGEONE.md。
 

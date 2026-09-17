@@ -104,7 +104,7 @@
 ## 9. 未验证项与风险
 
 - **EdgeOne 线上部署**：新 installCommand（全局装 pnpm）未在真实 EdgeOne 构建环境执行过，pending；`edgeone.json` 的 `/* → /index.html` 通配 rewrite 与 Next.js SSR/Functions 的适配是 M1 后独立事项（M0 风险清单第 2 条仍未消除）。
-- **GitHub Actions 云端 CI**：checks.yml 重写后未在远端跑过；首次 push 需观察 pnpm/action-setup、`--frozen-lockfile`、两个 e2e job。
+- **GitHub Actions 云端 CI**：重写后首跑（run 35222930853，PR #3）**失败于 check-production 步骤**——该步骤 `npx --package=node@22.11.0` 与 pnpm 11.7.0 的硬性要求（Node ≥ 22.13）冲突（`ERROR: This version of pnpm requires at least Node.js v22.13`）。此前各步骤（pnpm/action-setup、`install --frozen-lockfile`、build×3）在 Linux **全部通过**。连带发现 M1 改 installCommand 时未同步核对部署文档 Node 下限的组合性风险（EdgeOne 配 22.11.0 会在真实云端构建同样失败）及 `docs/SUPABASE_SETUP.md` §5 漏同步 pnpm 命令。修复（本提交）：CI 旧 Node 验证步骤升为 node@22.22.2（npm registry 存在该包装包，本机 `npx --yes --package=node@22.22.2 node --version` 冒烟通过）；DEPLOY_EDGEONE.md / SUPABASE_SETUP.md 的 Node 声明 22.11.0 → 22.22.2 并注明 pnpm 11 下限；SUPABASE_SETUP.md §5 同步 pnpm 安装/构建命令。复跑结果见 PR #3 后续 run。
 - **legacy e2e 命令级退出码**：M0 的 worker teardown 挂死本轮未复现（19 passed, 2.5m 正常返回）；该环境问题是否彻底消除仍需后续多轮观察。
 - **test:db**：已补跑通过（2026-09-17，Docker Desktop 启动后）。`docker pull postgres:17-alpine`（digest `sha256:18cfe3ef…`）→ `pnpm run test:db` EXIT=0：隔离容器（`--network none`、trust 认证、`--rm`）内依次执行 local-auth-harness.sql（2 角色 + harness schema/函数）、`202609100001_personal_sync.sql` 迁移（RLS 策略/函数，事务 COMMIT）、personal-sync.sql（双用户 set_config 上下文下的权限与 revision 断言），末行 `DTab SQL permission and revision tests passed`；测试容器已被脚本 finally 自动清理（`docker ps -a` 无残留）。至此 M1 涉及的全部测试命令（install/build/test/build:extension/test:production/build:web/typecheck/test:e2e:os/legacy e2e/test:db）均已实际执行通过。
 - **pnpm `--prod` 生产检查**仅在 Windows 复验；Linux 云环境未验证。
