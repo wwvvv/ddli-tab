@@ -13,6 +13,7 @@ Before OS-related changes, read:
 5. [Audit and release gates](docs/dtab-os-v1/04-AUDIT.md)
 6. [Codex tasks](docs/dtab-os-v1/05-CODEX-TASKS.md)
 7. [Billing policy](docs/dtab-os-v1/08-BILLING.md) for membership, points, paid actions and future managed-app integration.
+8. [Model thread evidence](docs/dtab-os-v1/09-MODEL-THREAD-EVIDENCE.md) for recording the model that actually ran each role thread.
 
 These files describe the accepted OS V1 implementation target. Existing README/build instructions remain the source for running the current legacy version until the relevant implementation commit updates them. Later explicit user decisions take precedence over this specification; record material changes instead of silently contradicting it.
 
@@ -67,15 +68,17 @@ No approved OS mockups or browser visual results are implied by these documents.
 
 Read [Model Routing v1.1](docs/dtab-os-v1/07-MODEL-ROUTING.md) before assigning work. The user uses the ChatGPT desktop app, not a required CLI workflow. Project defaults: CORE/integration = GPT-5.6 Sol; UI implementation = GPT-5.6 Terra Medium after contracts are stable; PLANNER/milestone REVIEW = GPT-6 Astra. This supersedes the previous default of Sol Medium for ordinary UI work.
 
-The user's 2026-09-16 screenshot shows Sol Medium, Astra Light and Terra Medium in recent model choices, with Terra Medium selected below the composer. This is picker/selection evidence, not verified execution metadata. Sol High, higher Astra efforts, full model availability, client version and cross-model subagent runs remain unverified. Do not mark them passed or infer model IDs from a model's self-description.
+The user's 2026-09-16 screenshot shows Sol Medium, Astra Light and Terra Medium in recent model choices, with Terra Medium selected below the composer. This is environment/picker evidence only. It does not prove that any later CORE/UI/REVIEW role thread actually ran that model.
 
-Target High for difficult Sol work, and Medium or an available deeper effort for Astra review, only when supported in the user's picker. Until verified, use the observed available setting for bounded work and record the actual effort/substitution; preserve independent review and all release gates. Model names and runtime IDs are separate fields. See the routing document for fallbacks.
+**Model audit hard rule:** follow [09-MODEL-THREAD-EVIDENCE.md](docs/dtab-os-v1/09-MODEL-THREAD-EVIDENCE.md). Record the model from the actual role thread only. Task titles, role names, AGENTS/Skill text, `.toml`, `.codex/agents/*`, configured targets, branch names and a model saying what it is are not evidence that a switch succeeded. If a role thread does not expose its actual model, record `observed_model = unknown`; do not infer it.
 
-These Markdown instructions do not themselves reconfigure the current main session. Official Codex documentation does support model/effort selection for subagents, but use it only through tools/configuration the actual client supports and verify what was launched. Do not simulate multiple models in prose. No active config.toml, custom agent configuration or approval policy is installed by this update; do not silently overwrite user configuration or switch billing paths.
+A configured/recommended model and an observed model are separate fields. Configuration can be recorded as `configured_target`, but only thread-level observable evidence can populate `observed_model` and reasoning effort. This rule supersedes any older 07-document wording that could be read as upgrading picker visibility or saved configuration into execution proof.
+
+These Markdown instructions do not themselves reconfigure the current main session. Official Codex documentation does support model/effort selection for subagents, but use it only through tools/configuration the actual client supports and verify the resulting role thread. Do not simulate multiple models in prose. No active config.toml, custom agent configuration or approval policy is installed by this update; do not silently overwrite user configuration or switch billing paths.
 
 CORE owns shared tokens, desktop contracts/layout, lockfiles, migrations, Auth, Service Worker, media authorization and deployment. Terra UI tasks own only their agreed directories and tests; the reviewer is read-only by default. Multiple conversations do not prove worktree isolation. If isolated parallel writes cannot be established, execute sequentially; never let agents compete over the same writable workspace.
 
-Model strength does not waive tests, release gates, production authorization or protection of existing work. Record recommended role separately from the actual observable model; use unknown when the environment does not expose it. Inspect existing implementation progress before starting; do not redo or overwrite completed stages merely because the model policy changed.
+Model strength does not waive tests, release gates, production authorization or protection of existing work. Inspect existing implementation progress before starting; do not redo or overwrite completed stages merely because the model policy changed.
 
 ## Commercial policy — confirmed 2026-09-16
 
