@@ -5,11 +5,17 @@ declare const self: ServiceWorkerGlobalScope;
 const CACHE = 'ddli-original-shell-' + CACHE_VERSION;
 // 新壳 /os 命名空间与 v1 API 的精确允许列表。
 function isPassthroughPath(pathname: string): boolean {
-  return pathname === '/os' || pathname.startsWith('/os/') || pathname.startsWith('/api/v1/');
+  return (
+    pathname === '/os' || pathname.startsWith('/os/') ||
+    pathname === '/api/v1' || pathname.startsWith('/api/v1/')
+  );
 }
 // 旧版 SPA 的导航入口；仅这些路径允许用缓存的 index.html 兜底。
 function isLegacyShellPath(pathname: string): boolean {
-  return pathname === '/' || pathname === '/console' || pathname.startsWith('/s/');
+  return (
+    ['/', '/index.html', '/newtab.html', '/popup.html', '/console', '/console/'].includes(pathname) ||
+    pathname.startsWith('/s/')
+  );
 }
 self.addEventListener('install', (event) => {
   // First install activates normally; updates wait until all old tabs close.
@@ -38,7 +44,7 @@ self.addEventListener('fetch', (event) => {
     url = new URL(request.url);
   // M1 允许列表：新壳路由与 v1 API 一律 passthrough，旧 SW 不拦截、不缓存、
   // 也不用旧 HTML 兜底（02-ARCHITECTURE 路径隔离；/os 命名空间迁移期使用）。
-  if (isPassthroughPath(url.pathname)) return;
+  if (url.origin === self.location.origin && isPassthroughPath(url.pathname)) return;
   if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
     event.respondWith(handleLocalApi(request));
     return;
@@ -63,6 +69,7 @@ self.addEventListener('fetch', (event) => {
   }
   if (url.origin !== self.location.origin || request.method !== 'GET') return;
   if (request.mode === 'navigate') {
+    if (!isLegacyShellPath(url.pathname)) return;
     event.respondWith(
       caches.open(CACHE).then(async (cache) => {
         // Keep the HTML entry and its modules on the same installed version.

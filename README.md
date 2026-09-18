@@ -62,7 +62,7 @@ pnpm run test:e2e
 
 config/default-template.json 保存版本化的初始布局和卡片，不依属于管理员账号。启动器仅对新浏览器复制一次；发布新模板不会覆盖已有收藏。模板不包含账号或会话。完整上线进度见 docs/launch-checklist.md。
 
-站点级名称与功能开关统一在 src/local/site-settings.ts 修改，构建输出的站点脚本与 API 使用同一份配置。管理员个人数据不参与生成。开发与 CI 使用 Node.js 24 + pnpm；EdgeOne 生产构建支持其预装 Node.js 22.11.0，安装命令为 npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile，构建命令为 pnpm run build:edge。
+站点级名称与功能开关统一在 src/local/site-settings.ts 修改，构建输出的站点脚本与 API 使用同一份配置。管理员个人数据不参与生成。开发与 CI 使用 Node.js 24 + pnpm；部署目标 Node.js 22.22.2（pnpm 11.7.0 至少要求 22.13；EdgeOne 控制台实际版本须另行核验），安装命令为 npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile，构建命令为 pnpm run build:edge。
 ## Supabase 环境配置与账号入口
 
 复制根目录 `.env.example` 为 `.env.local`，在本机填写 `VITE_SUPABASE_URL` 与 `VITE_SUPABASE_PUBLISHABLE_KEY`，再执行 `pnpm run build`。仅接受 `sb_publishable_` 公共密钥；数据库密码、Secret/service_role 密钥不要写入构建环境。该两项公共配置会进入前端构建产物，数据安全依赖登录身份与数据库 RLS。
@@ -73,11 +73,11 @@ config/default-template.json 保存版本化的初始布局和卡片，不依属
 
 同步启用前会保存安全备份；退出后停止同步。在同一浏览器多个标签页中，目前只允许一个标签页持有同步锁，其他标签页会提示到同步标签页操作。真实 Supabase 双设备联调尚未完成。
 
-在侧边栏“迁移备份”的同步区中可主动恢复当前部署版本的默认模板；恢复前保存可下载的原版 JSON 备份，确认框说明已启用同步时重置会同步到其他设备。GitHub 检查工作流已准备：构建、单元测试、数据库权限测试、Chromium 浏览器回归；代码已提交远端；当前 Actions 作业在执行步骤前失败，云端 CI 尚未通过。
+在侧边栏“迁移备份”的同步区中可主动恢复当前部署版本的默认模板；恢复前保存可下载的原版 JSON 备份，确认框说明已启用同步时重置会同步到其他设备。GitHub 检查工作流已准备：构建、单元测试、数据库权限测试、Chromium 浏览器回归；代码已提交远端。历史基线 PR #3 的 run 35224529155 已通过；后续变更须核对各自 commit 的 CI，不沿用历史通过结论。
 
 ## EdgeOne 手动部署
 
-见 [部署教程](docs/DEPLOY_EDGEONE.md)，根目录 edgeone.json 已配置安装、构建、输出目录、SPA 回退与响应头。Node 22.11.0 构建已在本机实际执行通过；线上部署与真实账号验收仍待完成。
+见 [部署教程](docs/DEPLOY_EDGEONE.md)，根目录 edgeone.json 已配置安装、构建、输出目录、SPA 回退与响应头。CI 的生产检查从 edgeone.json 读取目标 Node 版本；线上部署与真实账号验收仍待完成。当前输出仍是旧静态站，并非 Next.js /os 的同域名生产部署。
 
 ## 上线与扩展文档
 
@@ -85,3 +85,6 @@ config/default-template.json 保存版本化的初始布局和卡片，不依属
 - [浏览器扩展开发版](docs/EXTENSION.md)
 - [完整验收状态](docs/launch-checklist.md)
 
+## 2026-09-18 审查修复
+
+见 [修复、验证与发布顺序](docs/dtab-os-v1/implementation/REVIEW-FIXES-20260918.md)。新版同步写入必须配合账号归属校验迁移；未迁移或旧客户端不允许静默回退写入。

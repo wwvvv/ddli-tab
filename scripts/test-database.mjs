@@ -7,7 +7,10 @@ const docker = (args, options = {}) =>
 const SQL_FILES = [
   'supabase/tests/local-auth-harness.sql',
   'supabase/migrations/202609100001_personal_sync.sql',
+  // Check the historical contract before applying the fail-closed upgrade.
   'supabase/tests/personal-sync.sql',
+  'supabase/migrations/202609180001_sync_owner_guard.sql',
+  'supabase/tests/sync-owner-guard.sql',
 ];
 
 // 官方 postgres 镜像初始化期会短暂运行一个临时服务器（init 脚本窗口），

@@ -23,7 +23,7 @@ it('传输在账号切换后停止', async () => {
   };
   await expect(createSyncTransport(client, 'owner').pull()).rejects.toThrow('账号已变化');
 });
-it('RPC 只提交版本、请求编号和数据，不接受目标用户参数', async () => {
+it('RPC 绑定预期账号；服务端仍仅以 auth.uid() 决定写入账号', async () => {
   let parameters: any;
   const client: any = {
     auth: { getSession: async () => ({ data: { session: { user: { id: 'owner' } } } }) },
@@ -34,5 +34,10 @@ it('RPC 只提交版本、请求编号和数据，不接受目标用户参数', 
     },
   };
   await createSyncTransport(client, 'owner').push({ id: 'request', baseRevision: 0, payload: {} });
-  expect(parameters).toEqual({ p_base_revision: 0, p_request_id: 'request', p_payload: {} });
+  expect(parameters).toEqual({
+    p_expected_owner: 'owner',
+    p_base_revision: 0,
+    p_request_id: 'request',
+    p_payload: {},
+  });
 });

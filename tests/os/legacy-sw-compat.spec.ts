@@ -1,9 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { readOsE2eSettings } from './server-settings';
 
 // M1 允许列表兼容验收（05-CODEX-TASKS §4：旧 SW 已安装用户的升级路径与路径隔离）。
 // legacy 4180 静态服务器由 playwright.os.config.ts 的 webServer 数组提供，
 // dist-original 必须是包含允许列表改造的最新构建（CI 中 build 步骤先于本测试）。
-const LEGACY_ORIGIN = 'http://127.0.0.1:4180';
+const LEGACY_ORIGIN = readOsE2eSettings().legacyBaseURL;
 
 async function waitForActiveController(page: Page) {
   await page.evaluate(async () => {
@@ -48,6 +49,12 @@ test.describe('旧 SW 与新路由的兼容（M1 允许列表）', () => {
     expect(res?.status()).toBe(404);
     const content = await page.content();
     expect(content).not.toContain('搜一搜');
+  });
+
+  test('未知导航不再被旧首页兜底', async () => {
+    const res = await page.goto(`${LEGACY_ORIGIN}/not-a-real-route`);
+    expect(res?.status()).toBe(404);
+    expect(await page.content()).not.toContain('data-original-entry');
   });
 
   test('旧入口 /console 导航仍由旧壳接管', async () => {

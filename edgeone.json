@@ -2,7 +2,7 @@
   "installCommand": "npm i -g pnpm@11.7.0 && pnpm install --frozen-lockfile",
   "buildCommand": "pnpm run build:edge",
   "outputDirectory": "dist-original",
-  "nodeVersion": "22.11.0",
+  "nodeVersion": "22.22.2",
   "rewrites": [{ "source": "/*", "destination": "/index.html" }],
   "headers": [
     { "source": "/*", "headers": [
