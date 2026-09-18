@@ -1,0 +1,27 @@
+{
+  "reviewDate": "2026-09-18",
+  "repository": "TencentEdgeOne/edgeone-makers-tools",
+  "originalUserRepository": "TencentEdgeOne/edgeone-pages-skills",
+  "observedMainRevision": "f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2",
+  "accessMethod": "GitHub connector",
+  "installationExecutedInUserEnvironment": false,
+  "runtimeValidationExecuted": false,
+  "reviewedPaths": [
+    "README.md",
+    "skills/edgeone-makers-tools/SKILL.md",
+    "skills/edgeone-makers-tools/references/makers-recipes/SKILL.md",
+    "skills/edgeone-makers-tools/references/makers-storage/SKILL.md",
+    "skills/edgeone-makers-tools/references/makers-storage/references/blob.md",
+    "skills/edgeone-makers-tools/references/makers-cloud-functions/SKILL.md",
+    "skills/edgeone-makers-tools/references/makers-cloud-functions/references/node-functions.md",
+    "skills/edgeone-makers-tools/references/makers-agents/SKILL.md",
+    "skills/edgeone-makers-tools/references/makers-agents/references/platform/env-and-model.md"
+  ],
+  "reviewScope": "Relevant routing, storage, Node runtime and Agent conventions; not a full audit of every sub-skill or SDK implementation.",
+  "unverified": [
+    "Service-side atomicity and conflict reporting of onlyIfNew",
+    "Production end-user identity and multi-record recovery design",
+    "Financial reservation, settlement and refund correctness",
+    "Actual account quotas, model credentials and deployed runtimes"
+  ]
+}
