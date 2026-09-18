@@ -1,89 +1,46 @@
-# DTab Makers Native — Architecture v0.1
+# DTab Makers Native — Architecture v0.2
 
-Date: 2026-09-18. Status: implementation baseline, not a production-readiness claim.
+Date: 2026-09-18. Status: architecture and product proposal, not an implemented or production-ready system.
 
-## 1. Decision
+## 1. Scope and sources
 
-Build DTab from scratch around Makers rather than adapt the earlier implementation. DTab remains the user's personal Web OS: a desktop entry, official store, account, personal content, membership and a common AI access layer.
+Build from scratch around Makers. The user's latest instruction also permits functional modules to change. [PRODUCT.md](PRODUCT.md) is the current scope authority: desktop, app library, AI assistant, files, settings, shared activity and minimal operator administration. Prior fixed Store/Gallery routes and stage ordering are superseded.
 
-No mandatory Supabase, PostgreSQL, Redis, New API, external image-hosting service, Vercel or Cloudflare runtime is included in this architecture. Existing services are not deleted by this decision. An upstream model or payment provider remains an external business dependency where that capability is used; it is not an additional DTab hosting platform.
+No required Supabase, SQL database, Redis, New API, external image host, Vercel, Cloudflare runtime or production VPS is included. Existing infrastructure is not deleted. Upstream model and payment providers remain business dependencies with their own access and cost.
 
-## 2. What the official Skill actually establishes
+Official source revision f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2 was rechecked through GitHub. Paths and primary links are in [PRODUCT.md](PRODUCT.md#7-依据与事实边界) and ../skill-source.json. The storage/Blob references document object/JSON persistence and strong reads but warn about read-modify-write races; the Agent reference documents its distinct runtime, memory, tools, streams and abort requirements. These sources do not constitute a turnkey DTab identity, permission, billing or durable-job service.
 
-The reviewed official repository is TencentEdgeOne/edgeone-makers-tools. Its README describes one installed routing skill with capability references, not several independently required installations. The source revision and read paths are in ../skill-source.json.
-
-| Evidence | Consequence for DTab |
-| --- | --- |
-| The storage skill explicitly describes no managed database and recommends Blob key prefixes / JSON records as a backend. | Do not assume Blob is only for images or that every business object needs a SQL table. |
-| Blob exposes get, setJSON, list, delete, strong reads and the documented onlyIfNew option. | Build a server-side object repository with explicit schemas, ownership, versioning and pagination. |
-| Blob documentation warns that even strong read-modify-write can race. | Do not implement a financial balance by reading a number, subtracting, and overwriting JSON. |
-| Node Cloud Functions use cloud-functions/, context.env and the Web Request / Response API. | Keep ordinary account, desktop, gallery and admin APIs in concrete Node endpoints. |
-| Agent Runtime has its own request/store/tools/sandbox conventions under agents/. | Use it for AI execution, not as the identity service or a presumed transaction engine. |
-| KV is for Edge Functions; it is not the Cloud Functions object store. | Make KV optional for non-authoritative state; most business persistence goes to Blob. |
-
-The reviewed Skill does not establish a turnkey end-user Auth system, a relational transaction service, an atomic debit API, or DTab-compatible consumer billing. These remain application work and explicit validation gates. Console login, deployment login-free modes and Agent session memory do not implement DTab user login.
-
-### Primary sources
-
-All paths below are under the official repository at revision f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2:
-
-- https://github.com/TencentEdgeOne/edgeone-makers-tools/blob/f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2/skills/edgeone-makers-tools/SKILL.md
-- https://github.com/TencentEdgeOne/edgeone-makers-tools/blob/f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2/skills/edgeone-makers-tools/references/makers-storage/SKILL.md
-- https://github.com/TencentEdgeOne/edgeone-makers-tools/blob/f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2/skills/edgeone-makers-tools/references/makers-storage/references/blob.md
-- https://github.com/TencentEdgeOne/edgeone-makers-tools/blob/f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2/skills/edgeone-makers-tools/references/makers-cloud-functions/references/node-functions.md
-- https://github.com/TencentEdgeOne/edgeone-makers-tools/blob/f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2/skills/edgeone-makers-tools/references/makers-agents/SKILL.md
-- https://github.com/TencentEdgeOne/edgeone-makers-tools/blob/f106ce7b9c5893cc3d4afafaec1eb67ed3f5b3c2/skills/edgeone-makers-tools/references/makers-agents/references/platform/env-and-model.md
-
-## 3. Target runtime topology
+## 2. Runtime topology
 
 ```text
-Browser: DTab desktop / store / gallery / settings / admin
+DTab browser: desktop / apps / assistant / files / settings
+    |-- Browser-only tools and guest local state
     |
-    | Same-origin requests
-    v
-EdgeOne Makers project
-    |-- Vite + React static application
-    |-- Middleware / Edge Functions: only when a concrete edge task needs them
-    |-- Cloud Functions: identity, desktop, catalog, uploads, authorization
-    |       `-- Blob: JSON records + private objects
-    |-- Optional KV: public configuration cache / non-critical hints
-    `-- Agents: authorized AI execution, streaming, tools, memory
-            `-- Makers Models: configured provider access
+    `-- Same-origin authorized server requests
+            |-- Cloud Functions: identity, files, catalog, state and activity
+            |       `-- Blob: private objects + structured JSON records
+            |-- Models: bounded model requests
+            `-- Agent Runtime when memory/tools/sandbox are needed
+                    `-- Makers Models + platform-injected capabilities
+
+Optional only: Middleware / Edge Functions / KV for an identified edge need
 ```
 
-Do not force every request through Middleware -> Edge Function -> Cloud Function. A same-origin Node endpoint can perform authentication and access Blob directly. Edge middleware can provide an early check, but every protected handler still verifies the identity and ownership it uses.
+Do not force every request through middleware, an edge function and a cloud function. Ordinary endpoints can authorize and access Blob directly. Server checks still apply at every actual data/AI entry regardless of frontend route guards.
 
-## 4. Frontend and information architecture
+## 3. Frontend and routes
 
-Choose React + TypeScript + Vite for an interactive desktop shell; SSR is not a requirement for this product. This is a product-driven choice, not a requirement imposed by Makers. Tailwind CSS and shadcn/ui are UI building blocks; create a DTab design system rather than present an unmodified component dashboard as the desktop.
+Use React + TypeScript + Vite for the interactive desktop, with Tailwind CSS and shadcn/ui as building blocks for DTab-owned visuals. Dependency versions must be verified at scaffolding time. No SSR requirement is inferred from Makers support for Next.js.
 
-Routes: `/`, `/store`, `/gallery`, `/settings`, `/settings/account`, `/admin`, `/app/:appId`. Keep shortcuts, single-level folders, widgets, pagination, Dock, official-only app registry and versioned presets. External website shortcuts open safely in a new tab; do not promise iframe compatibility for every website.
+UI routes: `/`, `/apps`, `/app/:appId`, `/assistant`, `/files`, `/files/:assetId`, `/settings`, `/settings/account`, optional `/activity`, and `/admin`. Do not implement parallel old Store/Gallery apps. Keep API and Agent endpoint routes distinct from frontend fallbacks; unknown `/api/*` requests must not return index.html with a success status.
 
-Guest desktop data is local-first. The browser is a local cache/offline workspace, not the authority for identity, paid entitlements or server spending. Multi-device sync is based on preserved revisions and conflict handling, not blind replacement of one shared JSON file.
+The planned independent root contains src/, cloud-functions/api/, agents/ only when needed, server/, shared/, tests/, docs/, edgeone.json, package.json, package-lock.json and .env.example. These are planned application paths, not files claimed to exist already.
 
-Planned independent application root:
+App code is source-reviewed and registered by appId/actionId. Runtime classes are client/cloud/agent; externally deployed managed apps are future work. Library visibility, desktop placement and paid authorization are independent. Admin data cannot inject arbitrary JS, remote execution URLs or unreviewed tools.
 
-```text
-makers-native/
-  src/                   # React frontend
-  cloud-functions/api/   # ordinary business endpoints
-  agents/                # AI endpoints when an AI application is introduced
-  server/                # shared server-only modules; not browser imports
-  shared/                # schemas and public contracts only
-  tests/
-  docs/
-  edgeone.json
-  package.json
-  package-lock.json
-  .env.example
-  AGENTS.md
-```
+## 4. Storage and query model
 
-This is a target layout. The baseline commit does not create or claim runnable implementations for these directories.
-
-## 5. Blob data model
-
-Use `getStore({ name, consistency: 'strong' })` for business data. Introduce a schemaVersion in every structured record. Use authenticated subject IDs and server-generated opaque IDs in keys. Never expose general-purpose read/write/list-by-prefix APIs to browsers.
+Use getStore({ name, consistency: 'strong' }) for business reads/writes. Every structured object has schemaVersion. Server-controlled subject IDs and opaque object IDs define ownership. Do not expose generic prefix-list or arbitrary-key endpoints.
 
 Proposed key families:
 
@@ -94,58 +51,55 @@ auth/sessions/<token-digest>.json
 users/<uid>/profile.json
 users/<uid>/desktop/snapshots/<snapshot-id>.json
 users/<uid>/desktop/devices/<device-id>.json
-users/<uid>/installs/<app-id>.json
-users/<uid>/gallery/items/<asset-id>.json
+users/<uid>/apps/<app-id>.json
+users/<uid>/files/<asset-id>.json
 media/<uid>/<asset-id>/<variant>
+users/<uid>/activity/<day>/<run-id>.json
 catalog/apps/<app-id>/versions/<version-id>.json
 catalog/presets/<preset-id>/versions/<version-id>.json
-audit/<day>/<event-id>.json
 ai/<uid>/conversations/<conversation-id>/metadata.json
 ai/<uid>/runs/<run-id>.json
+audit/<day>/<event-id>.json
 ```
 
-These prefixes are not SQL tables and do not provide joins, constraints or transactions. Query by bounded prefix and paginate; do not download every user's records to filter on the frontend. A materialized index is derived data and requires an explicit repair strategy.
+These are object key families, not relational tables. Use bounded subject/prefix queries and pagination. Do not scan all user records to serve an ordinary request or promise arbitrary joins, global full-text search or live dashboards. Materialized indexes are derived and need repair paths.
 
-Store frequently appended records separately. Published catalog/preset versions and desktop snapshots are immutable by application policy; a writable pointer is not itself an atomic synchronization protocol. Concurrent edits must retain both revisions and surface a conflict rather than silently overwrite data. Any atomic create or pointer-update guarantee must be verified before relying on it.
+Snapshots, run events and published versions are separate records rather than one frequently overwritten global JSON. A mutable pointer is not automatically an atomic synchronization protocol. Preserve conflicting desktop revisions and offer a user decision. Uniqueness/conditional create and any index repair must be justified and tested.
 
-Auth handle reservation needs service-side uniqueness, observable conflicts and recovery from partial writes. The existence of onlyIfNew is not sufficient evidence that an unreviewed registration algorithm is correct.
+## 5. Identity, files and privacy
 
-### Private files
+DTab identity is application code in Cloud Functions using reviewed authentication primitives, server-verified credentials and secure HttpOnly cookies with CSRF protection. No plaintext passwords or invented crypto. Blob account-handle reservation needs documented uniqueness semantics, observable conflicts and recovery. Session revocation/account disable cannot rely solely on eventual KV or client roles.
 
-The application authenticates the user before issuing an upload URL; it generates an owned object key and restricts acceptable content. Verify actual format, size and metadata before publishing an asset into the user's gallery. Do not treat a Content-Type header alone as file validation. Do not assume upload presigning also provides a private download scheme.
+The browser is a local workspace/cache, not the source of truth for identity, paid entitlements or spending. Keep local import/export usable and avoid silent cross-device overwrites. Exact future one-time application launch authorization requires its own concurrency/replay review; desktop-only entry is not a security boundary.
 
-Downloads must pass an ownership check or use a separately verified short-lived access mechanism. Use private/no-store behavior for sensitive user responses and test source/CDN bypass. Direct uploads can avoid the Node function request-body path, but quotas, CORS, expiry, oversized uploads and abandoned objects still need validation.
+Private files use server-generated keys and authorized upload/read/list/download/delete endpoints. Validate actual format, size, quota and content, not merely Content-Type or a caller uid. Verify download confidentiality and source/CDN bypass; upload presigning alone does not establish private download access. Expired, abandoned and partially written uploads need explicit lifecycle handling.
 
-## 6. DTab Identity
+Initial types are bounded UTF-8 TXT/Markdown and selected static images. Markdown is rendered with raw HTML disabled or strict sanitization. Images being stored/previewed does not imply model vision support. PDF/Office/OCR/large media are separately validated extensions.
 
-Implement a single DTab identity boundary using reviewed authentication primitives in Cloud Functions. Store account metadata and session records in Blob, subject to the registration/session gates. Use server-validated credentials, secure HttpOnly cookies and CSRF protection for browser mutation requests. Do not invent a cryptographic protocol or store plaintext passwords.
+Only explicitly selected authorized inputs are sent to a model. Treat their content as untrusted instructions. First AI actions are read-input/create-output only; never allow prompt content to delete, overwrite or read unrelated files.
 
-Authoritative logout, account disable and privilege checks cannot depend only on eventually consistent KV. Short-circuit caches may improve reads but cannot grant a permission that the authoritative data has revoked. Client-set roles, editable profile fields, a request Referer, or opening an app from the desktop are not authorization.
+## 6. AI and shared activity
 
-Future independently deployed official applications must obtain DTab-controlled, audience-bound, short-lived authorization. Exact one-time-code consumption and replay prevention require a verified concurrency primitive. Do not put the main session token into launch URLs. An app's direct-entry redirect is a user-experience policy, separate from API access control.
+Makers Models is the provider-facing gateway, not a consumer points engine. Read AI_GATEWAY_API_KEY, AI_GATEWAY_BASE_URL and the verified model selection from server environment. Credentials, provider availability and usage/cost reporting must be tested; console provider rows are not enabled credentials and temporary free access is not a price promise.
 
-## 7. Models and Agents
+Use ordinary bounded requests when sufficient, and one chosen Agent Runtime route when conversations/tools/sandbox are needed. Follow the selected runtime's context/request/store contract; cloud-functions/ and agents/ are not interchangeable. Restrict actions, input length, output budget, turns and timeout. Do not assume ordinary function limits apply unchanged to Agent/sandbox execution, or that either provides indefinite background work.
 
-Makers Models is the default provider-facing gateway. DTab retains its own app/user authorization, action classification and user-facing commercial policy. Never equate provider usage statistics with a completed DTab points engine.
+Bind subject, conversation, run, app/action and input/output asset IDs server-side. Activity is a DTab-owned view backed by authorized records, not raw provider traces. It may show known stages and sanitized errors, never fabricated percentages or hidden model reasoning.
 
-Configure AI_GATEWAY_API_KEY, AI_GATEWAY_BASE_URL and the chosen AI_GATEWAY_MODEL on the server. Do not hardcode model names, assume that all provider rows in the console are configured, or build pricing around a temporary free allowance.
+Separate the execution outcome from result persistence. A successful model response with failed Blob save is not a fully completed saved result. Show cancel_requested until confirmation. Use unknown for ambiguous timeout/disconnection; reconcile the original run before retrying a potentially chargeable action.
 
-For Agent applications, follow the official agents/ entry contract and select one framework according to the actual application. Bind conversation IDs to DTab subjects; enforce ownership on resume, stop, history and file output. Use bounded tool loops, timeouts, abort handling and traceable run IDs. Agent memory is conversation state, not an authorization database or a financial lock.
+No durable queue, scheduling, disconnect survival or auto-resume is inferred from SSE, memory, Blob task JSON or a console template label. These capabilities remain separately documented and tested milestones. No unrestricted crawler, autonomous external publishing or arbitrary user code in the first release.
 
-The reviewed Node Functions reference lists finite execution and request-body limits. Do not put long video generation, unrestricted ffmpeg work or an always-running upstream server into a normal function by assumption. Validate the selected Agent/sandbox limits for each such application. Large applications remain independent milestones, not automatic capabilities of the Core desktop.
+## 7. Commercial and release boundaries
 
-## 8. Membership and points
+Keep free use + one membership + points packs; daily points reset without rollover/check-in, purchased points do not expire on daily reset or membership expiry. Prices, allocations, time zone and conversion require explicit configuration/approval. Low-cost included tools do not debit points; actual paid operations require transparent metering.
 
-Preserve the approved simple model: free use + one membership + points packs. Daily grants reset without rollover; purchased points do not reset with the day or membership expiry. No mandatory check-in, extra Max tier or per-app VIP. Prices, grants, time zone and quota conversion must be explicit configuration before release, not invented production defaults.
+With no New API, grants/reservations/settlement/refunds/reconciliation are DTab responsibilities. Strong Blob reads are not transactions, and appending immutable events does not prevent two concurrent spenders. onlyIfNew requires a documented service guarantee and a reviewed, fault-tested algorithm; an in-process mutex, eventual KV lock or ETag alone is insufficient.
 
-Removing New API as infrastructure does not remove its former responsibilities. DTab now needs a native implementation for grants, reservations, usage settlement, failure release, refunds and reconciliation. Keep distinct states for created/reserved/running/settled/failed/unknown runs. A timed-out request must not blindly create a new paid upstream run.
+Real checkout, recharge and paid public access remain disabled until commercial gates pass. Internal testing also needs authorized funded calls and a bounded budget. Do not promise unlimited free AI or silently add SQL to bypass the Makers-only requirement.
 
-Makers-only financial feasibility is an open validation task, not a proven capability. Investigate the documented onlyIfNew operation and its service-side semantics, error behavior and multi-instance behavior. Immutable per-event objects may support auditing, but appending an event alone cannot prevent two requests from both spending the same remaining grant. Strong reads, ETags and an in-process mutex do not fill this gap.
+## 8. Deployment
 
-Do not launch real charging until the entire settlement design is justified and fault-tested. If the required primitive remains undocumented or insufficient, report that exact blocked gate and continue non-financial implementation; do not hide the gap or silently add an external database. This baseline does not claim that every commercial requirement is already achievable safely using the currently documented primitives.
+The current branch is documentation only. Scaffold and build the new root before changing any Makers production root or release branch. Preserve current main and existing production settings. Use an explicitly authorized test project for credentialed Makers CLI checks; do not infer access, paid-call authority or quota from screenshots.
 
-## 9. Deployment boundary
-
-First create and test the new root independently. Preserve the existing main branch and current production project. Connect a separately authorized preview environment only when the new app builds; do not reuse the existing root package scripts or service worker.
-
-Use Makers CLI for integration, with an explicit test project for credentialed Blob work. Git-based automatic builds require the actual configured project connection; a written instruction is not a completed deployment. Production authorization, secrets, domains, model credentials and payment channels are never inferred from screenshots.
+Source review, local unit mocks and frontend build are distinct from actual cloud route/storage/AI validation. Record real outcomes and remaining gates, including rollback, rather than reusing old test counts.

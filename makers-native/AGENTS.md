@@ -2,44 +2,47 @@
 
 ## Scope and authority
 
-This directory is a greenfield rebuild authorized by the user's 2026-09-18 instruction. Within makers-native/, the previous infrastructure requirements for Supabase, PostgreSQL, Cloudflare ImgBed, New API, legacy compatibility and the old migration sequence are superseded. The earlier product decisions remain unless explicitly changed. Do not edit or remove the old implementation merely to make this directory look cleaner.
+This directory is a greenfield rebuild authorized on 2026-09-18. The user subsequently allowed the website's functional modules to be redesigned around Makers. Read docs/PRODUCT.md for the current scope proposal. It supersedes fixed Store/Gallery modules, legacy routes and the previous stage order; it does not imply per-feature user approval or completed implementation.
 
-Read README.md and docs/ARCHITECTURE.md before implementation. docs/IMPLEMENTATION.md distinguishes planned work from executed validation. This baseline is not a runnable application.
+Within makers-native/, old requirements for Supabase, PostgreSQL, Cloudflare ImgBed, New API, legacy compatibility and migration are superseded. Preserve the unified DTab entry, iOS/iPadOS-inspired interaction, account ownership and simple commercial policy. Do not modify or remove the old implementation merely to simplify this directory.
 
-## Official skill
+Read README.md, docs/PRODUCT.md, docs/ARCHITECTURE.md and the current milestone in docs/IMPLEMENTATION.md before implementation. The current change is a documentation baseline, not a runnable app.
 
-Read the official TencentEdgeOne/edgeone-makers-tools router and only the references relevant to the current task. The reviewed source and paths are recorded in skill-source.json. The official README provides `npx skills add TencentEdgeOne/edgeone-makers-tools`; reading these files through GitHub does not install them into a user's Windows/VPS agent environment. Do not claim installation without executing it in and verifying the intended environment.
+## Official skill and runtime
 
-Important conventions verified in the reviewed skill:
+Read the official TencentEdgeOne/edgeone-makers-tools router and only relevant references. The reviewed revision is in skill-source.json. GitHub reading does not install the skill on a user's device; do not claim local installation without execution and verification in the intended environment.
 
-- cloud-functions/ contains Node business APIs; concrete .js endpoints are the simplest initial shape. Do not start a persistent app.listen server.
-- agents/ contains Agent Runtime endpoints. Do not confuse their already-parsed request body and plain-object headers with the Web Request used by ordinary Node Cloud Functions.
-- Read runtime secrets through context.env in cloud-functions/ and agents/. Do not silently fall back to process.env in those handlers.
-- Blob uses @edgeone/pages-blob. Construct stores with getStore({ name, consistency: 'strong' }). Do not use a process array or local SQLite as production persistence.
-- KV is a console-bound global in Edge Functions; it is not context.env.KV and is not the Blob SDK.
-- AI_GATEWAY_API_KEY and AI_GATEWAY_BASE_URL must be declared in the application root .env.example. Keep all credentials out of client bundles, VITE_* variables, logs and Git.
-- Agent conversation IDs are routing identifiers, not proof of user identity. Bind each conversation to the authenticated DTab subject on the server.
-- Use bounded execution, abort handling, heartbeat and the documented stream protocol when implementing Agents. Install only the selected framework, not every SDK.
-- Use edgeone makers dev for Makers integration tests. Credentialed Blob development requires account authorization and project linking; use the explicit test project name. Do not provision a new project or enable paid resources implicitly.
+- Ordinary APIs live in cloud-functions/; start with concrete documented Node .js endpoints. Do not run app.listen or use local filesystem/arrays as production persistence.
+- Agent Runtime endpoints live in agents/. Their parsed body and plain-object headers differ from the Web Request used by ordinary Node Cloud Functions. Follow the actual selected runtime contract.
+- Read cloud/agent secrets from context.env. Declare AI_GATEWAY_API_KEY and AI_GATEWAY_BASE_URL in .env.example. Never put secrets in VITE_* variables, client bundles, logs, public JSON or Git.
+- Blob uses @edgeone/pages-blob and getStore({ name, consistency: 'strong' }). KV is an Edge Function console-bound global, not context.env.KV or the Blob SDK.
+- Conversation IDs, run IDs and asset IDs are identifiers, not authorization. Bind them to the authenticated subject on the server, including history, stop, resume and download endpoints.
+- Use one appropriate Agent framework only when needed. Follow bounded loops, budget limits, abort handling, heartbeats and stream conventions. Browser-only tools must not acquire an AI dependency unnecessarily.
+- A task record, SSE stream or platform template label does not prove durable execution, background queueing, scheduling, auto-resume or confirmed upstream cancellation. Do not promise those without a verified contract.
+- Use edgeone makers dev for integration. Credentialed Blob work needs an authorized linked test project. Do not implicitly provision projects, incur paid calls or change production settings.
 
 ## Product boundaries
 
-Preserve the iOS/iPadOS-inspired desktop, shortcuts, folders, Dock, widgets, official store, private gallery, settings, versioned official presets and admin tools. This is not a Windows-style arbitrary multiwindow desktop. Use DTab-owned visual assets. Keep keyboard, touch, reduced-motion, reduced-transparency and responsive behavior.
+The current user-facing modules are desktop, app library, AI assistant, files and settings, plus shared activity and operator administration. Gallery is a files image view, not a separately required album system. The app library exposes official reviewed tools/actions rather than a third-party marketplace. A shared text assistant provides summary/rewrite/translation actions instead of multiple independent chat apps.
 
-The commercial model remains free use + ONE membership + points packs. Daily points reset without rollover or mandatory check-in; purchased points do not reset with the day or membership expiry. Exact prices and allowances remain unapproved. Low-cost included tools do not automatically debit points. Paid AI/per-use APIs require explicit metering.
+Keep a useful guest desktop and browser-only tools. Start the AI file path with bounded TXT/Markdown input and new text output; do not infer PDF, OCR, vision, video or arbitrary Office support from a provider list. Never render untrusted HTML or user SVG as executable content.
 
-No arbitrary remote JavaScript execution or third-party uploaded app bundles in the main origin. External managed apps are a later integration boundary, not an excuse to recreate multiple login and billing systems.
+Retain DTab-owned visuals, keyboard/touch support, responsive layouts, reduced-motion and reduced-transparency. Do not add arbitrary multiwindow, community, creator uploads, revenue sharing, unlimited storage, user-written workflows or new external infrastructure to the initial milestone.
 
-## Data and financial correctness
+The commercial model remains free use + ONE membership + points packs. Daily points reset without rollover/check-in; purchased points do not reset at midnight or membership expiry. Prices and allowances remain unapproved. Included low-cost tools do not automatically debit points. Paid AI/per-use APIs require explicit metering and release gates.
 
-Blob strong reads are not transactions. A JavaScript mutex, a function instance's memory, KV read-modify-write, an ETag without documented conditional replacement, or simply writing an immutable ledger entry do not prove prevention of double spending.
+## Security and correctness
 
-The documented onlyIfNew option is a candidate primitive to investigate, not an established distributed-lock or financial transaction implementation. Verify service-side guarantees, conflict observability, retries, multiple instances and crash recovery. A passing one-off load test is not a proof of the guarantee.
+Blob strong reads are not transactions. An in-process mutex, KV read-modify-write, an ETag without documented conditional replacement, or an immutable event alone does not prevent double spending. onlyIfNew is a primitive to investigate, not a proven distributed lock or financial algorithm. Verify documented guarantees, observable conflicts, multiple instances, retries and crash recovery before relying on it.
 
-Derive object keys and ownership from verified server identity, never from a trusted client uid. Keep privileged roles server-controlled. Do not publish private gallery URLs or issue arbitrary-prefix signed uploads. Published presets and device snapshots must preserve previous versions.
+Derive keys and permissions from server identity. Auth handle reservation needs uniqueness and recovery; logout/disable cannot rely solely on stale KV. Privileged roles must not come from editable profiles. Client Referer or desktop entry is not authorization.
+
+All private file operations and model inputs need ownership checks. Only explicitly selected data may be sent to a model. Treat file/model content as untrusted, not authority to delete, overwrite or exfiltrate data. AI creates separate result assets by default. Published presets and user snapshots preserve earlier revisions and expose conflicts.
+
+Report generation success and persistence success separately. Show cancel_requested until confirmed; use unknown for ambiguous outcomes. Do not fabricate progress or automatically reissue an ambiguous paid request. Provider traces are not a user-visible license to reveal secrets, raw private tool data or hidden model reasoning.
 
 ## Work and reporting
 
-Work in stage-sized commits on the rebuild branch. Keep main, existing infrastructure, production DNS and live payments unchanged unless separately authorized. Do not create deployment workflows before the new root has an actual build.
+Use stage-sized commits on the rebuild branch. Keep main, production DNS, live payments and existing infrastructure unchanged unless separately authorized. No deployment workflows before a real independent build exists.
 
-Report passed / failed / blocked / not-run truthfully, and record tool/runtime versions. Mock storage tests are not real Makers tests. A screenshot of an Agents tab does not establish enabled credentials, quota, a deployed Agent, or successful model calls. Do not claim that configured model names prove which model executed this work.
+Report passed / failed / blocked / not-run truthfully. Source review and documentation consistency checks are not runtime tests. Mock tests do not prove Makers behavior. A console tab does not establish enabled credentials, quota, deployment or successful model calls. Do not claim a configured model proves which model executed development work.

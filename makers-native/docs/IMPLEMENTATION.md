@@ -1,66 +1,62 @@
-# Makers Native — Implementation and Acceptance
+# Makers Native — 实施计划与验收 v0.2
 
-Status date: 2026-09-18. This plan replaces the old migration sequence for the new directory. It is not a declaration that the implementation is complete.
+日期：2026-09-18。状态：待执行的产品开发计划。功能范围以 [PRODUCT.md](PRODUCT.md) 为准，本计划取代 v0.1 中先完整建设商店/独立相册再加入 AI 的顺序。
 
-## Stage 0 — Official capability review and architecture baseline
+## P0 — 产品与平台基线
 
-Completed in this change: read the official skill router, recipes, storage/Blob references, Node Cloud Functions reference and Agent/environment conventions; record the reviewed source; define a greenfield Makers-native architecture; preserve the product and simple pricing policy; identify hard release gates.
+已完成文档工作：官方 Skill 相关能力阅读；Makers 原生架构；本轮将功能调整为桌面、应用库、AI 助手、文件、设置及共享任务面板；定义首条文本处理到文件保存的验收链路。
 
-Not completed: installation into the user's computer, npm dependency installation, frontend scaffolding, runtime implementation, test execution, Makers account linkage, provisioning or deployment.
+未执行：本地 Skill 安装、工程脚手架、依赖安装、业务代码、运行测试、云端账号连接、资源创建、模型调用或部署。产品编排是授权范围内的方案，不标记为用户已逐项验收。
 
-## Stage 1 — Native project and guest desktop
+## P1 — 可独立使用的桌面与本地工具
 
-Create an independent React/TypeScript/Vite project with its own lockfile, build scripts and Makers configuration. Implement the desktop shell, browser routing, Dock, folders, editable shortcuts, a small official app registry and settings. Use original DTab assets and keep the selected iOS/iPadOS-style interaction direction. Do not import legacy code or service workers.
+新建独立 React/TypeScript/Vite 工程、锁文件、Makers 配置、路由和设计 token。实现桌面、快捷方式、Dock、单层文件夹、基础外观设置、源码注册的应用库，以及一个纯浏览器图片压缩工具。AI/文件等尚未实现入口隐藏，不展示虚假结果。
 
-Acceptance: type check, build, real browser interaction, keyboard/touch and responsive tests; deep-link refresh; no fake installed apps or usage statistics. Makers CLI integration must confirm that unknown `/api/*` paths do not silently return the frontend HTML. Frontend-only success is not proof that Cloud Functions deployed.
+验收：类型、构建、单元和真实浏览器测试；手机/平板/桌面布局；键盘/触摸操作；减少动效/透明度；刷新深链接；游客数据备份；图片处理默认不上传；未知 API 不回退为成功 HTML。浏览器本地功能通过不等于云端函数部署通过。
 
-## Stage 2 — Blob, identity and personal synchronization
+## P2 — 统一身份、Blob 与个人文件
 
-Implement server-side object repositories with strong reads and schema validation. Verify the Blob SDK version and runtime behavior before choosing a lockfile version. Implement native identity using reviewed authentication primitives, account reservation, session creation/revocation and server-side ownership. Add local-first desktop synchronization with preserved snapshots and explicit conflicts.
+先验证 Blob SDK、强一致读和注册所需的条件写语义，再实现身份、会话、所有权校验、私有文件 CRUD、桌面快照同步与冲突提示。文件首批为有明确限制的 TXT/Markdown 与常用静态图片；不建立独立 Gallery 系统。
 
-Acceptance: registration collision, concurrent create, malformed input, account enumeration/rate abuse controls, credential reset policy, cookie/CSRF behavior, account switching, disabled-account denial, logout revocation, expired sessions, cross-user object access, multi-device edits and interrupted writes. Never use a UI-only uid check as authorization.
+验收：账号名并发占用、部分写入恢复、凭据与会话安全、CSRF、账号切换/禁用/撤销、跨用户读写/列举、实际内容与大小校验、上传滥用/过期/孤儿对象、下载与 CDN/源站绕过、Markdown 安全渲染、多设备冲突和历史恢复。未解决身份唯一性/私有访问时不开放多人真实数据。
 
-Identity implementation cannot be marked production-ready without a demonstrated uniqueness and recovery design. An account-control page is not the same as working secure Auth.
+## P3 — 一个完整 AI 使用场景与共享任务记录
 
-## Stage 3 — Store, gallery, presets and administration
+用一个已验证的模型接入实现共用 AI 文本工作区：摘要、改写、翻译是同一工作区的动作预设。用户选中文本或本人 TXT/Markdown 文件，服务端读取有权限的输入，展示真实执行状态，将结果另存为文件。需要会话/工具才选一个 Agent 路线；不引入整套多 Agent 或工作流平台。
 
-Implement official catalog records, installs separate from placements, gallery upload/read/delete, published preset versions, admin roles and audit events. New presets must not automatically replace existing users' desktop state. File metadata and object bytes need recoverable lifecycle states.
+验收：真实网关配置和模型可用性、主体/会话/runId 绑定、禁止越权文件引用、上下文/输出预算、流式与取消、停止确认、未知结果、生成成功但保存失败、重复点击与安全重试、历史/结果访问、敏感日志清理。模型或文件内容不能授权副作用。
 
-Acceptance: private-media source/CDN bypass, signed-upload abuse, content validation, size limits, expired uploads, abandoned object handling, pagination, authorization for every admin operation, rollback of published versions and preservation of user content.
+任务面板只表示已知运行记录。页面关闭后继续执行、定时任务、队列、自动恢复不属于本阶段承诺。真实模型测试需单独授权资金和配置；无凭据时标记 blocked，不能用 mock 冒充通过。
 
-## Stage 4 — One real AI application
+## P4 — 轻量运营与首版整体验收
 
-Introduce one bounded AI application using Makers Models and, where needed, one selected Makers Agent template. Do not install all supported Agent SDKs. Add authenticated subject/conversation/run binding, server-side model selection, streaming, cancellation, tool limits, error display and usage records.
+完善官方应用可见性、版本化预设、动作配置、用户禁用、必要审计，以及设置中的资料、同步、安全、数据管理和真实用量展示。不重建 Makers 的域名/部署/密钥控制台；后台不能指定任意执行代码或第三方端点。
 
-Acceptance: verify the actual configured gateway, model availability, stream protocol, abort behavior, conversation isolation, request/run correlation and redacted logs. Do not interpret a console provider list as enabled paid credentials. Explicitly distinguish internal test calls from publicly funded AI access; no real paid calls without the appropriate authorization.
+验收：端到端从桌面输入到 AI 结果归档；预设升级不覆盖已有桌面；管理权限不来自可编辑用户字段；费用估算与实际 usage 明确区分；配额与预算开关失效时关闭受影响功能；生产构建、预览与上线验收分开记录。无云端依赖的桌面/本地工具可单独验收。
 
-## Stage 5 — Commercial settlement
+## C — 商业门槛（与基础开发并行研究，上线前必须通过）
 
-Keep the single-membership and two-points-pool product rules. Establish service-side concurrency guarantees before implementation is accepted. Test same-user parallel runs, duplicate payment callbacks, duplicate grant events, insufficient credit, mixed daily/purchased grants, cross-midnight work, membership expiry, partial upstream failures, unknown billing outcomes, refunds, retries and operator reconciliation.
+保留一个会员、每日积分与购买积分；不在本轮批准价格或充值。首先确认可依赖的服务侧并发原语与故障模型，再设计授予、预留、结算、退款与对账。
 
-Required outcome: no duplicate grants or debits, no double spending, no fabricated success after ambiguous failure, and a recoverable audit trail. A raw Blob increment/decrement or an eventual KV lock is rejected. A successful small stress test does not replace a documented primitive guarantee and a reviewed algorithm.
+必须测试：同用户并发、重复支付回调/赠送、额度不足、双积分池、跨日任务、会员到期、失败/未知上游结果、重复重试、退款与运营恢复。不接受 Blob 读取余额后覆盖扣减、最终一致 KV 锁或仅凭压力测试就宣称正确。
 
-Until accepted: real checkout, recharge, paid-AI public access and automatic charging remain disabled. This is a release gate, not a deletion of the planned commercial functionality. Do not add SQL/New API in the background to avoid resolving the Makers-only requirement.
+真实支付、充值与公开付费 AI 在门槛通过前保持禁用；内部/免费 AI 也需预算与滥用防护，不能靠免费标签绕过并发成本问题。不得悄悄增加 SQL/New API 或把待完成积分功能标为可用。
 
-## Configuration
+## 后续扩展，不作为首版入口
 
-The adjacent .env.example declares the documented gateway names plus draft DTab-owned application names. It contains no live credentials. Those DTab names are a contract proposal; no current implementation reads them yet. Enabling an environment flag alone is not sufficient authorization to activate a payment feature.
+PDF/Office/OCR/多模态、联网研究、经验证的沙箱文件工具、定时与可靠后台执行、大型官方受管应用、复杂相册、主题编辑器等逐项评估。必须有明确用例、平台依据、预算与验收，不因模板存在就批量上架。
 
-Do not ask the user to paste API Tokens, model keys, session secrets or payment secrets into chat. Configure them in the appropriate authorized local environment or Makers secret settings when that stage is ready.
+## 当前验证状态
 
-## Current verification report
-
-| Check | State | Evidence / scope |
+| 检查 | 状态 | 范围 |
 | --- | --- | --- |
-| Official skill/source read | Done | skill-source.json and cited source files |
-| Separate rebuild branch | Created | feat/makers-native-foundation |
-| Old main/code preservation | Required by this change | Only new makers-native/ files are added |
-| Dependency security/compatibility | Not run | No application dependencies selected or installed |
-| Type/build/unit/E2E tests | Not run | Documentation baseline, no runnable application |
-| Blob CRUD/onlyIfNew/concurrency | Not run | No authorized Makers test project used |
-| Auth/private files | Not implemented | Stage 2/3 gates |
-| Models/Agents invocation | Not run | No live key/model call used |
-| Payments/points settlement | Not implemented | Stage 5 gate |
-| Production deployment | Not run | No production settings changed |
+| 官方 Skill 相关内容与 revision | 已阅读/核对 | GitHub 文档层；非运行验证 |
+| 产品模块、路由、阶段及安全边界 | 文档已调整 | 本轮设计草案 |
+| Skill 用户设备安装 | 未执行 | 未触达用户设备 |
+| 依赖、类型、构建、单元/E2E | 未执行 | 无新应用代码 |
+| Blob/身份/文件/并发 | 未执行 | 无授权云端测试 |
+| 模型、Agents、实际 usage | 未执行 | 未发送真实模型请求 |
+| 支付/积分结算 | 未实现 | 商业门槛未通过 |
+| Makers 生产配置与部署 | 未执行 | 不调整 main、根目录、域名或密钥 |
 
-Add real execution reports as stages are implemented. Never copy old test counts, call a planned command an executed test, or claim a cloud deployment from the presence of configuration files.
+后续每阶段记录实际 passed/failed/blocked/not-run、版本与证据。Git 变更范围检查只能证明文档修改范围，不能算作应用构建、安全或性能测试。
