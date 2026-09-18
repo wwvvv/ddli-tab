@@ -17,12 +17,22 @@ jobs:
         with:
           node-version: '24'
           cache: pnpm
+      - name: Read deployment Node version
+        id: deployment-runtime
+        run: |
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const { nodeVersion } = JSON.parse(fs.readFileSync("edgeone.json", "utf8"));
+            if (!/^\d+\.\d+\.\d+$/.test(nodeVersion)) throw new Error("Invalid deployment Node version");
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `node=${nodeVersion}\n`);
+          '
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - run: pnpm run build:extension
       - run: pnpm run build:web
-      - run: npx --yes --package=node@22.22.2 node scripts/check-production.mjs
+      - run: npx --yes --package=node@${{ steps.deployment-runtime.outputs.node }} node scripts/check-production.mjs
       - run: pnpm test
+      - run: pnpm run test:review
       - run: docker pull postgres:17-alpine
       - run: pnpm run test:db
       - run: pnpm exec playwright install --with-deps chromium

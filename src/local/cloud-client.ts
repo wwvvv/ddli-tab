@@ -68,6 +68,8 @@ export function createSyncTransport(client: SupabaseClient, owner: string): Sync
     async push(write) {
       await checkOwner();
       const { data, error } = await client.rpc('dtab_push_snapshot', {
+        // A comparison guard, never the destination user ID (the server uses auth.uid()).
+        p_expected_owner: owner,
         p_base_revision: write.baseRevision,
         p_request_id: write.id,
         p_payload: write.payload,
