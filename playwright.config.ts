@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests',
+  testIgnore: ['tests/os/**', 'tests/integration/**'], // Separate OS/integration configs
   workers: 1,
   timeout: 45000,
   use: {

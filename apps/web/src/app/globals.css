@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/*
+ * DTab 设计 token（M1 最小集，完整 token 体系见 docs/dtab-os-v1/06-DESIGN-SYSTEM.md，
+ * 后续里程碑在此基础上扩展而非替换变量名）。
+ */
+:root {
+  --dt-bg: #f5f5f7;
+  --dt-surface: #ffffff;
+  --dt-text: #1d1d1f;
+  --dt-text-muted: #6e6e73;
+  --dt-accent: #0a84ff;
+  --dt-border: #d2d2d7;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dt-bg: #000000;
+    --dt-surface: #1c1c1e;
+    --dt-text: #f5f5f7;
+    --dt-text-muted: #98989d;
+    --dt-accent: #0a84ff;
+    --dt-border: #38383a;
+  }
+}

@@ -4,20 +4,28 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": ">=22.11.0"
+    "node": ">=22.13.0"
   },
+  "packageManager": "pnpm@11.7.0",
   "scripts": {
     "build": "tsc --noEmit && node scripts/build-original.mjs",
-    "dev": "npm run build && node scripts/serve-original.mjs",
+    "build:web": "pnpm --filter @ddli/web run build",
+    "dev:web": "pnpm --filter @ddli/web run dev",
+    "typecheck:web": "pnpm --filter @ddli/web run typecheck",
+    "dev": "pnpm run build && node scripts/serve-original.mjs",
     "preview": "node scripts/serve-original.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
+    "test:review": "node --test scripts/test-review-fixes.mjs",
     "test:e2e": "playwright test",
+    "test:e2e:os": "playwright test --config playwright.os.config.ts",
     "format:check": "prettier --check \"src/local/**/*.ts\" \"scripts/*.mjs\"",
     "test:db": "node scripts/test-database.mjs",
     "build:edge": "node scripts/build-original.mjs",
     "test:production": "node scripts/check-production.mjs",
-    "build:extension": "node scripts/build-extension.mjs"
+    "build:extension": "node scripts/build-extension.mjs",
+    "test:origin": "node --test scripts/test-migration-origin.mjs",
+    "test:e2e:integration": "playwright test --config playwright.integration.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
