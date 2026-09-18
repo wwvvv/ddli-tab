@@ -23,7 +23,9 @@
     "test:db": "node scripts/test-database.mjs",
     "build:edge": "node scripts/build-original.mjs",
     "test:production": "node scripts/check-production.mjs",
-    "build:extension": "node scripts/build-extension.mjs"
+    "build:extension": "node scripts/build-extension.mjs",
+    "test:origin": "node --test scripts/test-migration-origin.mjs",
+    "test:e2e:integration": "playwright test --config playwright.integration.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.116.0",
