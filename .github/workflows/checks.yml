@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0 # Exact pre-M1 worker fixture is read from its audited Git commit.
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4（读取 packageManager 字段）
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
@@ -33,10 +35,12 @@ jobs:
       - run: npx --yes --package=node@${{ steps.deployment-runtime.outputs.node }} node scripts/check-production.mjs
       - run: pnpm test
       - run: pnpm run test:review
+      - run: pnpm run test:origin
       - run: docker pull postgres:17-alpine
       - run: pnpm run test:db
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run test:e2e
       - run: pnpm run test:e2e:os
+      - run: pnpm run test:e2e:integration
 
 
